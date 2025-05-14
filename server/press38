@@ -37,9 +37,6 @@ end
 
 function refresh_screen()
     function draw_grid(pos_x, pos_y)
-        -- Clear widgets
-        screen.widgets = {}
-
         monitor.setBackgroundColor(colors.black)
         monitor.setTextColor(colors.lightGray)
         monitor.clear()
@@ -95,6 +92,18 @@ function refresh_screen()
         end
     end
 
+    function draw_header(pos_x, pos_y)
+        monitor.setBackgroundColor(colors.yellow)
+        monitor.setTextColor(colors.black)
+        monitor.setCursorPos(pos_x, pos_y)
+        monitor.write("Refresh")
+        table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 7, height = 1, id = "refresh"})
+    end
+
+    -- Clear widgets
+    screen.widgets = {}
+
+    draw_header(2, 2)
     draw_grid(4, 4)
 end
 
@@ -257,6 +266,7 @@ while true do
         for _, widget in ipairs(screen.widgets) do
             if x >= widget.x and x <= widget.x + widget.width - 1 and y >= widget.y and y <= widget.y + widget.height - 1 then
                 speaker.playSound("ui.button.click")
+                -- Grid
                 if widget.id:sub(1, 5) == "grid_" then
                     local gridX, gridY = widget.id:match("grid_(%d+)_(%d+)")
                     gridX = tonumber(gridX)
@@ -266,7 +276,7 @@ while true do
                         turtle.selected = not turtle.selected
                     end
                     refresh_screen()
-                elseif widget.id:sub(1, 6) == "column_" then
+                elseif widget.id:sub(1, 7) == "column_" then
                     local column = tonumber(widget.id:sub(7))
                     local turtle = get_turtle(column, 0)
                     local new_value = not turtle.selected
@@ -302,6 +312,10 @@ while true do
                     for id, bot in pairs(turtles) do
                         bot.selected = new_value
                     end
+                    refresh_screen()
+                elseif widget.id == "refresh" then
+                    print("[Info] Refreshing turtles...")
+                    reload_turtles()
                     refresh_screen()
                 end
 
