@@ -65,8 +65,8 @@ function reload_turtles()
         print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
 
         local start = os.clock()
-        while os.clock() - start < TIMEOUT and ready < count do
-            local id, msg, proto = rednet.receive(PROTOCOL, TIMEOUT - (os.clock() - start))
+        while os.clock() - start < HANDSHAKE_TIMEOUT and ready < count do
+            local id, msg, proto = rednet.receive(PROTOCOL, HANDSHAKE_TIMEOUT - (os.clock() - start))
             if id and msg == "ack" then
                 turtles[id].ack = true
                 ready = ready + 1
