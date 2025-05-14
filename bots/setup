@@ -57,3 +57,6 @@ for i = 4, #arg do
     i = i + 1
 end
 
+print("[Setup] Setup finished as " .. idx .. idy)
+sleep(3)
+os.reboot()
