@@ -112,15 +112,20 @@ function refresh_screen()
 
             monitor.setCursorPos(pos_x + 8, pos_y)
             monitor.write("Update")
-            table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 7, height = 1, id = "update"})
+            table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 6, height = 1, id = "update"})
 
             monitor.setCursorPos(pos_x + 15, pos_y)
             monitor.write("Empty")
-            table.insert(screen.widgets, {x = pos_x + 16, y = pos_y, width = 7, height = 1, id = "empty"})
+            table.insert(screen.widgets, {x = pos_x + 16, y = pos_y, width = 5, height = 1, id = "empty"})
 
             monitor.setCursorPos(pos_x + 21, pos_y)
+            monitor.write("Cancel")
+            table.insert(screen.widgets, {x = pos_x + 23, y = pos_y, width = 6, height = 1, id = "cancel"})
+
+            -- next line
+            monitor.setCursorPos(pos_x, pos_y + 2)
             monitor.write("Clear")
-            table.insert(screen.widgets, {x = pos_x + 23, y = pos_y, width = 7, height = 1, id = "clear"})
+            table.insert(screen.widgets, {x = pos_x, y = pos_y + 2, width = 5, height = 1, id = "clear"})
         end  
     end
 
@@ -129,7 +134,7 @@ function refresh_screen()
     monitor.clear()
 
     draw_header(4, 2)
-    draw_grid(4, 4)
+    draw_grid(4, 5)
 end
 
 -- Methods
@@ -355,6 +360,14 @@ parallel.waitForAll(
                             
                             do_action(get_cmd, true)
                             print("[Info] Clear command sent to turtles.")
+                        elseif widget.id == "cancel" then
+                            print("[Info] Canceling turtles...")
+                            function get_cmd(id, bot)
+                                return "cancel"
+                            end
+                            
+                            do_action(get_cmd, true)
+                            print("[Info] Cancel command sent to turtles.")
                         end
 
                         break
@@ -367,7 +380,7 @@ parallel.waitForAll(
         while true do
             local id, msg, proto = rednet.receive(PROTOCOL)
             print("[Info] Received message from turtle " .. id .. ": " .. msg)
-            if msg == "done" then
+            if msg:sub(1, 4) == "done" then
                 print("[Info] Turtle " .. id .. " finished!")
                 local turtle = turtles[id]
                 if turtle then
