@@ -104,12 +104,13 @@ function refresh_screen()
             monitor.setCursorPos(pos_x, pos_y)
             monitor.write(frozen.message .. " " .. string.format("%.2f%%", frozen.progress * 100))
         else
-            monitor.setBackgroundColor(colors.yellow)
+            monitor.setBackgroundColor(colors.orange)
             monitor.setTextColor(colors.black)
             monitor.setCursorPos(pos_x, pos_y)
             monitor.write("Refresh")
             table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 7, height = 1, id = "refresh"})
-
+            
+            monitor.setBackgroundColor(colors.yellow)
             monitor.setCursorPos(pos_x + 8, pos_y)
             monitor.write("Update")
             table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 6, height = 1, id = "update"})
@@ -122,9 +123,9 @@ function refresh_screen()
             monitor.write("Cancel")
             table.insert(screen.widgets, {x = pos_x + 21, y = pos_y, width = 6, height = 1, id = "cancel"})
 
-            monitor.setCursorPos(pos_x + 27, pos_y)
+            monitor.setCursorPos(pos_x + 28, pos_y)
             monitor.write("Clear")
-            table.insert(screen.widgets, {x = pos_x + 27, y = pos_y, width = 5, height = 1, id = "clear"})
+            table.insert(screen.widgets, {x = pos_x + 28, y = pos_y, width = 5, height = 1, id = "clear"})
         end  
     end
 
@@ -132,8 +133,9 @@ function refresh_screen()
     screen.widgets = {}
     monitor.clear()
 
-    draw_header(4, 2)
-    draw_grid(4, 5)
+    local size_x, size_y = monitor.getSize()
+    draw_header(4, size_y - 4)
+    draw_grid(4, 4)
 end
 
 -- Methods
