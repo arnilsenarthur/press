@@ -27,7 +27,7 @@ if not (idx:match("^[A-P]$") and idy:match("^[1-9]$") or idy:match("^1[0-6]$")) 
 end
 
 local modem = peripheral.find("modem", rednet.open)
-rednet.host(PROTOCOL, "robot" .. ID_X .. " " .. ID_Y)
+rednet.host(PROTOCOL, "robot" .. ID_X .. ID_Y)
 print("[Startup] Robot ID: " .. ID_X .. ID_Y)
 
 -- Local values
