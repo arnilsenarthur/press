@@ -5,8 +5,8 @@ PROTOCOL = "press"
 
 -- Grid Settings
 GRID_SIZE = 8
-GRID_WIDTH = 2
-GRID_HEIGHT = 2
+GRID_WIDTH = 16
+GRID_HEIGHT = 16
 
 -- Timeout Settings
 HANDSHAKE_TIMEOUT = 2
@@ -22,6 +22,15 @@ if monitor then
     monitor.setTextColor(colors.white)
     monitor.setBackgroundColor(colors.black)
     monitor.clear()
+end
+
+function get_turtle(x, y)
+    for id, bot in pairs(turtles) do
+        if bot.x == x and bot.y == y then
+            return bot
+        end
+    end
+    return nil
 end
 
 function refresh_screen()
@@ -43,8 +52,9 @@ function refresh_screen()
             -- draw the grid
             for x = 0, GRID_WIDTH - 1 do
                 monitor.setCursorPos(pos_x + 2 + x * 2, pos_y + y * 2 + 2)
-                if turtles[y * GRID_WIDTH + x + 1] then
-                    if turtles[y * GRID_WIDTH + x + 1].ack then
+                turtle = get_turtle(x, y)
+                if turtle then
+                    if turtle.ack then
                         monitor.setTextColor(colors.green)
                     else
                         monitor.setTextColor(colors.red)
