@@ -1,0 +1,455 @@
+local args = {...}
+
+PROTOCOL = "press"
+ID_X = settings.get("robot_x")
+ID_Y = settings.get("robot_y")
+
+GRID_SIZE = 8
+
+BLOCK_OFF = "minecraft:stone"
+BLOCK_TOP = "minecraft:quartz_block"
+BLOCK_BOTTOM = "minecraft:polished_andesite"
+BLOCK_LEFT = "minecraft:polished_diorite"
+BLOCK_RIGHT = "minecraft:polished_granite"
+ 
+BLOCK_TOP_LEFT = "minecraft:iron_block"
+BLOCK_TOP_RIGHT = "enderstorage:ender_chest"
+BLOCK_BOTTOM_LEFT = "minecraft:gold_block"
+BLOCK_BOTTOM_RIGHT = "minecraft:diamond_block"
+
+if not ID_X or not ID_Y then
+    print("[Error] Invalid ID format. Please re-setup the robot.")
+end
+
+if not (ID_X:match("^[A-P]$") and ID_Y:match("^[1-9]$") or ID_Y:match("^1[0-6]$")) then
+    print("[Error] Invalid ID format. Please re-setup the robot.")
+end
+
+local modem = peripheral.find("modem", rednet.open)
+rednet.host(PROTOCOL, "robot" .. ID_X .. ID_Y)
+print("[Startup] Robot ID: " .. ID_X .. ID_Y)
+
+-- Local values
+local running = false
+local reoriented = false
+
+-- Basic Functions
+function check_cancel()
+    while running do
+        local id, msg, proto = rednet.receive(PROTOCOL)
+        if msg == "cancel" then
+            print("[Info] Task cancelled as requested.")
+            running = false
+            break
+        end
+        sleep(0.01)
+    end
+end
+
+function refuel_safe()
+    if turtle.getFuelLevel() < turtle.getFuelLimit() * 0.2 then
+        local count = turtle.getItemCount(16)
+        if count > 0 then
+            turtle.select(16)
+            turtle.refuel(count)
+            return true
+        end
+        
+        return false
+    end
+
+    return true
+end
+
+function reorient()
+    if reoriented then
+        return true
+    end
+
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to reorient.")
+        return false
+    end
+    
+    reoriented = false
+    local has, data = nil
+ 
+    local function phase_0()
+        while true do
+            has, data = turtle.inspectDown()
+            if data.name ~= BLOCK_OFF then
+                break
+            else
+                turtle.forward()
+            end
+        end
+    end
+ 
+    local function find_block(block)
+        while true do
+            turtle.turnLeft()
+            local fw = turtle.forward()
+            has, data = turtle.inspectDown()
+            if data.name == block then
+                break
+            elseif fw then
+                turtle.back()
+            end
+        end
+    end
+            
+    local function phase_1(block)
+        find_block(block)        
+        while true do
+            turtle.forward()
+            has, data = turtle.inspectDown()
+            if data.name ~= block then
+                break
+            end
+        end
+    end    
+ 
+    local function phase_3(block)
+        if block == BLOCK_BOTTOM_RIGHT then
+            find_block(BLOCK_BOTTOM)
+            turtle.back()
+            turtle.turnRight()
+            for i=1,7 do
+                turtle.forward()
+            end
+            turtle.turnLeft()
+            turtle.turnLeft()
+        elseif block == BLOCK_BOTTOM_LEFT then
+            find_block(BLOCK_BOTTOM)
+            turtle.back()
+            turtle.turnLeft()
+            for i=1,7 do
+                turtle.forward()
+            end
+            turtle.turnRight()
+            for i=1,7 do
+                turtle.forward()
+            end
+            turtle.turnRight()
+        elseif block == BLOCK_TOP_LEFT then
+            find_block(BLOCK_TOP)
+            for i=1,6 do
+                turtle.forward()
+            end
+            turtle.turnRight()
+        elseif block == BLOCK_TOP_RIGHT then
+            find_block(BLOCK_TOP)
+            turtle.back()
+            turtle.turnLeft()
+        end
+    end                                    
+                                                                                                            
+    while true do
+        has, data = turtle.inspectDown()
+        if has then
+            break  
+        end
+    turtle.down()
+    end
+    
+    if data.name == BLOCK_OFF then
+        phase_0()
+    end
+    
+    if data.name == BLOCK_TOP or
+        data.name == BLOCK_BOTTOM or
+        data.name == BLOCK_RIGHT or
+        data.name == BLOCK_LEFT then
+        phase_1(data.name)
+    end
+    
+    has, data = turtle.inspectDown()
+    phase_3(data.name)    
+    
+    has, data = turtle.inspectDown()
+    oriented = has and data.name == BLOCK_TOP_RIGHT
+    return oriented
+end
+
+function dig_and_refuel()
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to dig.")
+        return false
+    end
+
+    turtle.digUp()
+
+    return true
+end
+
+function place_and_refuel(index)
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to place.")
+        return false
+    end
+
+    turtle.select(index)
+    turtle.placeUp()
+
+    return true
+end
+
+-- Action: Clear
+function action_clear()
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to clear.")
+        return false
+    end
+
+    if not reorient() then
+        print("[Error] Reorientation failed.")
+        return false
+    end  
+
+    print("[Info] Task: Clear")
+    running = true
+
+    function task_clear()
+        print("[Info] Starting clearing...")
+
+        oriented = false
+
+        for i=1,GRID_SIZE do
+            for j=1,GRID_SIZE - 1 do
+                dig_and_refuel()
+                turtle.forward()
+                
+                if not running then
+                    return false
+                end
+            end
+            
+            if i == GRID_SIZE then
+                turtle.turnRight()
+                turtle.digUp()
+                for j=1,GRID_SIZE - 1 do
+                    turtle.forward()
+
+                    if not running then
+                        return false
+                    end
+                end
+                turtle.turnRight()
+            elseif i % 2 == 0 then
+                dig_and_refuel()
+                turtle.turnLeft()
+                turtle.forward()
+                turtle.turnLeft()
+            else
+                dig_and_refuel()
+                turtle.turnRight()
+                turtle.forward()
+                turtle.turnRight()
+            end
+        end
+
+        print("[Info] Clearing done.")
+        running = false
+        local has, data = turtle.inspectDown()
+        oriented = has and data.name == BLOCK_TOP_RIGHT
+    end
+
+    parallel.waitForAll(task_clear, check_cancel)
+    print("[Info] Task finished.")
+    return true
+end
+
+-- Action: Build
+function action_build(data)
+    if data == nil then
+        print("[Error] No data received!")
+        return false
+    end
+
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to build.")
+        return false
+    end
+
+    if not reorient() then
+        print("[Error] Reorientation failed.")
+        return false
+    end
+
+    running = true
+    print("[Info] Task: Build")
+
+    function task_build()
+        print("[Info] Starting building...")
+
+        oriented = false
+
+        for i=1,GRID_SIZE do
+            for j=1,GRID_SIZE do
+                local block = data[j][GRID_SIZE - i + 1]
+
+                if i % 2 == 0 then
+                    block = data[GRID_SIZE - j + 1][GRID_SIZE - i + 1]
+                end
+
+                place_and_refuel(block + 1)
+                
+                if j ~= GRID_SIZE then
+                    turtle.forward()
+                else
+                    if i == GRID_SIZE then
+                        turtle.turnRight()
+                        turtle.forward()
+                        place_and_refuel(block + 1)
+                        for k=1,GRID_SIZE - 2 do
+                            turtle.forward()
+                        end
+                        turtle.turnRight()
+                    elseif i % 2 == 0 then
+                        turtle.turnLeft()
+                        turtle.forward()
+                        turtle.turnLeft()
+                    else
+                        turtle.turnRight()
+                        turtle.forward()
+                        turtle.turnRight()
+                    end
+                end
+
+                if not running then
+                    return false
+                end
+            end
+        end
+
+        print("[Info] Building done.")
+        running = false
+        local has, data = turtle.inspectDown()
+        oriented = has and data.name == BLOCK_TOP_RIGHT
+    end
+
+
+    parallel.waitForAll(task_build, check_cancel)
+    print("[Info] Task finished.")
+    return true
+end
+
+-- Action: Empty
+function action_empty()
+    running = true
+    print("[Info] Task: Empty")
+
+    function task_empty()
+        print("[Info] Starting emptying...")
+
+        local keep = true
+        while keep do
+            keep = false
+            for i=1,16 do
+                local count = turtle.getItemCount(i)
+                if count > 0 then
+                    keep = true
+                    turtle.select(i)
+                    turtle.dropDown(count)
+                end
+
+                if not running then
+                    return false
+                end
+            end
+            sleep(0.1)
+
+            if not running then
+                return false
+            end
+        end
+
+        print("[Info] Emptying done.")
+        running = false
+    end
+
+    parallel.waitForAll(task_empty, check_cancel)
+    print("[Info] Task finished.")
+    return true
+end
+
+function action_pick(slot)
+    running = true
+    print("[Info] Task: Pick")
+
+    function task_pick()
+        print("[Info] Starting picking...")
+
+        local count = turtle.getItemCount(slot)
+        while count < 64 do
+            turtle.suckDown(64 - count)
+            count = turtle.getItemCount(slot)
+            sleep(0.1)
+
+            if not running then
+                return false
+            end
+        end
+
+        print("[Info] Picking done.")
+        running = false
+    end
+
+    parallel.waitForAll(task_pick, check_cancel)
+    print("[Info] Task finished.")
+    return true
+end
+
+while true do
+    print("[Info] Waiting for commands...")
+    local id, msg, proto = rednet.receive(PROTOCOL)
+    if msg == "handshake" then
+        print("[Info] Control " .. id .. " handshake!")
+        rednet.send(id, "ack", PROTOCOL)
+    elseif msg:sub(1, 4) == "pick" then
+        local slot = tonumber(msg:sub(5))
+        if not slot or slot < 1 or slot > 16 then
+            print("[Error] Invalid pick slot: " .. msg)
+        else
+            print("[Info] Picking up items...")
+            local result = action_pick(slot)
+            rednet.send(id, "done " .. tostring(result), PROTOCOL)
+        end
+    elseif msg == "empty" then
+        local result = action_empty()
+        rednet.send(id, "done " .. tostring(result), PROTOCOL)
+    elseif msg == "clear" then
+        local result = action_clear()
+        rednet.send(id, "done " .. tostring(result), PROTOCOL)
+    elseif msg and msg:sub(1, 5) == "build" then
+        msg = msg:sub(7)
+        local grid = {}
+        for line in msg:gmatch("[^\r\n]+") do
+            local row = {}
+            for number in line:gmatch("%d+") do
+                table.insert(row, tonumber(number))
+            end
+            if #row ~= GRID_SIZE then
+                print("[Error] Line " .. (#grid + 1) .. " has a wrong size!")
+                return
+            end
+            table.insert(grid, row)
+        end
+
+        if #grid ~= GRID_SIZE then
+            print("[Error] Grid has a wrong size!")
+            return
+        end
+
+        print("[Info] Grid received!")
+        local result = action_build(grid)
+        rednet.send(id, "done " .. tostring(result), PROTOCOL)
+    elseif msg:sub(1, 6) == "update" then
+        local pastebin_id = msg:sub(8)
+        print("[Info] Updating code from url " .. pastebin_id .. "...")
+        shell.run("update", "startup.lua", pastebin_id)
+        return
+    else
+        print("[Error] Unknown command: " .. msg)
+    end
+end
