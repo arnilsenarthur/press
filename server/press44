@@ -99,7 +99,7 @@ function refresh_screen()
             monitor.setTextColor(colors.red)
             monitor.setBackgroundColor(colors.black)
             monitor.setCursorPos(pos_x, pos_y)
-            monitor.write(frozen.message .. " " .. tostring.format("%.2f%%", frozen.progress * 100))
+            monitor.write(frozen.message .. " " .. string.format("%.2f%%", frozen.progress * 100))
         else
             monitor.setBackgroundColor(colors.yellow)
             monitor.setTextColor(colors.black)
