@@ -113,24 +113,26 @@ function refresh_screen()
             
             monitor.setBackgroundColor(colors.yellow)
             monitor.setCursorPos(pos_x + 2, pos_y )
-            monitor.write("Empty")
-            table.insert(screen.widgets, {x = pos_x + 2, y = pos_y, width = 5, height = 1, id = "empty"})
-
-            monitor.setCursorPos(pos_x + 8, pos_y)
             monitor.write("Update")
-            table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 6, height = 1, id = "update"})
-
-            monitor.setCursorPos(pos_x + 15, pos_y)
+            table.insert(screen.widgets, {x = pos_x + 2, y = pos_y, width = 6, height = 1, id = "update"})
+            
+            monitor.setBackgroundColor(colors.lime)
+            monitor.setCursorPos(pos_x + 9, pos_y)
             monitor.write("Build")
-            table.insert(screen.widgets, {x = pos_x + 15, y = pos_y, width = 5, height = 1, id = "build"})
+            table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 5, height = 1, id = "build"})
+
+            monitor.setBackgroundColor(colors.yellow)
+            monitor.setCursorPos(pos_x + 15, pos_y)
+            monitor.write("Clear")
+            table.insert(screen.widgets, {x = pos_x + 15, y = pos_y, width = 5, height = 1, id = "clear"})
 
             monitor.setCursorPos(pos_x + 21, pos_y)
             monitor.write("Cancel")
             table.insert(screen.widgets, {x = pos_x + 21, y = pos_y, width = 6, height = 1, id = "cancel"})
 
             monitor.setCursorPos(pos_x + 28, pos_y)
-            monitor.write("Clear")
-            table.insert(screen.widgets, {x = pos_x + 28, y = pos_y, width = 5, height = 1, id = "clear"})
+            monitor.write("Empty")
+            table.insert(screen.widgets, {x = pos_x + 28, y = pos_y, width = 5, height = 1, id = "empty"})
 
             monitor.setCursorPos(pos_x - 1, pos_y + 2)
             monitor.setBackgroundColor(colors.black)
@@ -140,7 +142,6 @@ function refresh_screen()
             monitor.setBackgroundColor(colors.yellow)
             monitor.setTextColor(colors.black)
 
-            -- print all numbers from 1 to 16
             local pick_pos = pos_x + 4
             
             for i = 1, 16 do
