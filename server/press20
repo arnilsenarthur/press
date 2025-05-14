@@ -270,15 +270,32 @@ elseif args[1] == "empty" then
     wait_for_done(240)
 elseif args[1] == "cancel" then
     print("[Info] Cancelling...")
+
+    local count = 0
+    local ready = 0
+
+    for id, bot in pairs(turtles) do
+        count = count + 1
+    end
+
+    local tx, ty = term.getCursorPos()
+    term.setCursorPos(tx, ty)
+    print("[Info] Number of cancelled turtles: " .. ready .. "/" .. count)
+
     for y = 0, GRID_HEIGHT - 1 do
         for x = 0, GRID_WIDTH - 1 do
             local name = "robot" .. string.char(65 + x) .. (y + 1)
             local id = rednet.lookup(PROTOCOL, name)
             if id then
                 rednet.send(id, "cancel", PROTOCOL)
+                ready = ready + 1
+                term.setCursorPos(tx, ty)
+                print("[Info] Number of cancelled turtles: " .. ready .. "/" .. count)
             end
         end
     end
+
+    print("[Info] Cancelled turtles!")
 else
     print("[Error] Invalid mode! Use 'clear', 'build', 'update', 'pick', 'empty' or 'cancel'.")
     return
