@@ -37,6 +37,36 @@ function get_turtle(x, y)
     return nil
 end
 
+function get_grid(url)
+    local response = http.get(url)
+    if not response then
+        print("[Error] Invalid URL")
+    end
+    
+    local raw_data = response.readAll()
+    response.close()
+    
+    local grid = {}
+    for line in raw_data:gmatch("[^\r\n]+") do
+        local row = {}
+        for number in line:gmatch("%d+") do
+            table.insert(row, tonumber(number))
+        end
+        if #row ~= GRID_WIDTH * GRID_SIZE then
+            print("[Error] Line " .. (#grid + 1) .. " has a wrong size!")
+            return nil
+        end
+        table.insert(grid, row)
+    end
+    
+    if #grid ~= GRID_HEIGHT * GRID_SIZE then
+        print("[Error] Invalid row count")
+        return nil
+    end
+
+    return grid
+end
+
 -- Display
 function refresh_screen()
     function draw_grid(pos_x, pos_y)
@@ -105,7 +135,7 @@ function refresh_screen()
             monitor.setCursorPos(pos_x, pos_y)
             monitor.write(frozen.message .. " " .. string.format("%.2f%%", frozen.progress * 100))
 
-            local progress_width = 34
+            local progress_width = 33
             local progress = math.floor(frozen.progress * progress_width)
             
             monitor.setCursorPos(pos_x, pos_y + 2)
@@ -431,6 +461,34 @@ parallel.waitForAll(
                             
                             do_action(get_cmd, true)
                             print("[Info] Pick command sent to turtles.")
+                        elseif widget.id == "build" then
+                            monitor.clear()
+                            monitor.setCursorPos(1, 1)
+                            monitor.setTextColor(colors.yellow)
+                            monitor.setBackgroundColor(colors.black)
+                            monitor.write("Insert the URL on the console:")
+                            print("Write the URL to download the build file:")
+                            local url = read()
+
+                            local grid = get_grid(url)
+                            if grid then
+                                function get_cmd(id, bot)
+                                    local grid_part = ""
+                                    for y = 0, GRID_SIZE - 1 do
+                                        local row = {}
+                                        for x = 0, GRID_SIZE - 1 do
+                                            local index_y = bot.y * GRID_SIZE + y
+                                            local index_x = bot.x * GRID_SIZE + x
+                                            grid_part = grid_part .. grid[index_y + 1][index_x + 1] .. " "
+                                        end
+                                        grid_part = grid_part .. "\n"
+                                    end
+
+                                    return "build " .. grid_part
+                                end
+
+                                do_action(get_cmd, false)
+                            end
                         end
                     end
                 end
