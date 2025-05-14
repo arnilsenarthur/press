@@ -97,13 +97,17 @@ function refresh_screen()
         monitor.setCursorPos(pos_x, pos_y)
         monitor.write("Refresh")
         table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 7, height = 1, id = "refresh"})
+
+        monitor.setCursorPos(pos_x + 8, pos_y)
+        monitor.write("Update")
+        table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 7, height = 1, id = "update"})
     end
 
     -- Clear widgets
     screen.widgets = {}
     monitor.clear()
 
-    draw_header(2, 2)
+    draw_header(4, 2)
     draw_grid(4, 4)
 end
 
@@ -317,12 +321,38 @@ while true do
                     print("[Info] Refreshing turtles...")
                     reload_turtles()
                     refresh_screen()
+                elseif widget.id == "update" then
+                    monitor.clear()
+                    monitor.setCursorPos(1, 1)
+                    monitor.write("Insert the URL on the console:")
+                    print("Write the URL to download the update file:")
+                    local url = read()
+                    
+                    local count = 0
+                    local ready = 0
+
+                    for id, bot in pairs(turtles) do
+                        count = count + 1
+                    end
+
+                    local x, y = term.getCursorPos()
+                    term.setCursorPos(x, y)
+                    print("[Info] Number of ready turtles: " .. ready .. "/" .. count)
+
+                    for id, bot in pairs(turtles) do
+                        ready = ready + 1
+                        term.setCursorPos(x, y)
+                        rednet.send(id, "update " .. url, PROTOCOL)
+                        print("[Info] Number of ready turtles: " .. ready .. "/" .. count)
+                    end
+
+                    print("[Info] Update sent to turtles!")
+                    print("[Info] Wait for the turtles to finish!")
                 end
 
                 break
             end
         end
-        print("[Info] Monitor touched at " .. x .. ", " .. y)
     end
 end
 
