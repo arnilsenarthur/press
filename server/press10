@@ -257,7 +257,16 @@ elseif args[1] == "empty" then
         rednet.send(id, "empty", PROTOCOL)
     end
     wait_for_done(240)
+elseif args[1] == "cancel" then
+    if not reload_turtles() then
+        print("[Error] Initlization shutdown!")
+        return
+    end
+    print("[Info] Cancelling...")
+    for id, bot in pairs(turtles) do
+        rednet.send(id, "cancel", PROTOCOL)
+    end
 else
-    print("[Error] Invalid mode! Use 'clear', 'build', 'update', 'pick' or 'empty'.")
+    print("[Error] Invalid mode! Use 'clear', 'build', 'update', 'pick', 'empty' or 'cancel'.")
     return
 end
