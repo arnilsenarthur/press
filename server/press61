@@ -110,12 +110,12 @@ function refresh_screen()
             monitor.setCursorPos(pos_x, pos_y)
             monitor.write("@")
             table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 1, height = 1, id = "refresh"})
-
+            
+            monitor.setBackgroundColor(colors.yellow)
             monitor.setCursorPos(pos_x + 2, pos_y )
             monitor.write("Empty")
             table.insert(screen.widgets, {x = pos_x + 2, y = pos_y, width = 5, height = 1, id = "empty"})
-            
-            monitor.setBackgroundColor(colors.yellow)
+
             monitor.setCursorPos(pos_x + 8, pos_y)
             monitor.write("Update")
             table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 6, height = 1, id = "update"})
@@ -132,7 +132,7 @@ function refresh_screen()
             monitor.write("Clear")
             table.insert(screen.widgets, {x = pos_x + 28, y = pos_y, width = 5, height = 1, id = "clear"})
 
-            term.setCursorPos(pos_x, pos_y + 2)
+            monitor.setCursorPos(pos_x, pos_y + 2)
             monitor.setBackgroundColor(colors.black)
             monitor.setTextColor(colors.white)
             monitor.write("Pick: ")
@@ -144,6 +144,7 @@ function refresh_screen()
             local pick_pos = pos_x + 6
             
             for i = 1, 16 do
+                monitor.setCursorPos(pick_pos, pos_y + 2)
                 monitor.write(i)
                 
                 if i > 9 then
