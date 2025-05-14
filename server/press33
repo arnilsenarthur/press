@@ -43,7 +43,10 @@ function refresh_screen()
         monitor.setBackgroundColor(colors.black)
         monitor.setTextColor(colors.lightGray)
         monitor.clear()
-        monitor.setCursorPos(pos_x + 2, pos_y)
+        monitor.setCursorPos(pos_x, pos_y)
+
+        monitor.write("X ")
+        table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 1, height = 1, id = "all"})
 
         for x = 0, GRID_WIDTH - 1 do
             monitor.write(string.char(65 + x) .. " ")
@@ -87,6 +90,8 @@ function refresh_screen()
                 
                 table.insert(screen.widgets, {x = pos_x + 2 + x * 2, y = pos_y + y * 2 + 2, width = 1, height = 1, id = "grid_" .. x .. "_" .. y})
             end
+
+            monitor.setBackgroundColor(colors.black)
         end
     end
 
@@ -103,8 +108,7 @@ function reload_turtles()
             local id = rednet.lookup(PROTOCOL, name)
             if turtles[id] then
                 turtles[id].found = id ~= nil
-                turtles[id].ack = turtles[id].ack and id ~= nil
-                turtles[id].selected = false
+                turtles[id].ack =  false
                 turtles[id].ready = false
 
                 if turtles[id].found then
@@ -115,7 +119,7 @@ function reload_turtles()
                 end
             else
                 if id then
-                    turtles[id] = {name = name, ack = false, ready = false, x = x, y = y, found = id ~= nil, selected = false}
+                    turtles[id] = {name = name, ack = false, ready = false, x = x, y = y, found = id ~= nil, selected = true}
                     count = count + 1
                 else
                     print("[Error] Bot " .. name .. " not found!")
@@ -267,11 +271,51 @@ while true do
                     end
                     refresh_screen()
                 elseif widget.id:sub(1, 5) == "column_" then
-                    print("[Info] Column " .. widget.id .. " clicked!")
+                    local column = tonumber(widget.id:sub(7))
+                    local turtle = get_turtle(column, 0)
+                    local new_value = not turtle.selected
+                    for y = 0, GRID_HEIGHT - 1 do
+                        local turtle = get_turtle(column, y)
+                        if turtle then
+                            turtle.selected = new_value
+                            if new_value then
+                                print("[Info] Turtle " .. turtle.name .. " selected!")
+                            else
+                                print("[Info] Turtle " .. turtle.name .. " unselected!")
+                            end
+                        end
+                    end
                     refresh_screen()
                 elseif widget.id:sub(1, 4) == "row_" then
-                    print("[Info] Row " .. widget.id .. " clicked!")
+                    local row = tonumber(widget.id:sub(6))
+                    local turtle = get_turtle(0, row)
+                    local new_value = not turtle.selected
+                    for x = 0, GRID_WIDTH - 1 do
+                        local turtle = get_turtle(x, row)
+                        if turtle then
+                            turtle.selected = new_value
+                            if new_value then
+                                print("[Info] Turtle " .. turtle.name .. " selected!")
+                            else
+                                print("[Info] Turtle " .. turtle.name .. " unselected!")
+                            end
+                        end
+                    end
                     refresh_screen()
+                else if widget.id == "all" then
+                    print("[Info] All turtles clicked!")
+                    -- use the first turtle as a reference
+                    local turtle = turtles[next(turtles)]
+                    local new_value = not turtle.selected
+
+                    for id, bot in pairs(turtles) do
+                        bot.selected = new_value
+                        if new_value then
+                            print("[Info] Turtle " .. bot.name .. " selected!")
+                        else
+                            print("[Info] Turtle " .. bot.name .. " unselected!")
+                        end
+                    end
                 end
             end
         end
