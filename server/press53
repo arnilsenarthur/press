@@ -116,16 +116,15 @@ function refresh_screen()
 
             monitor.setCursorPos(pos_x + 15, pos_y)
             monitor.write("Empty")
-            table.insert(screen.widgets, {x = pos_x + 16, y = pos_y, width = 5, height = 1, id = "empty"})
+            table.insert(screen.widgets, {x = pos_x + 15, y = pos_y, width = 5, height = 1, id = "empty"})
 
             monitor.setCursorPos(pos_x + 21, pos_y)
             monitor.write("Cancel")
-            table.insert(screen.widgets, {x = pos_x + 23, y = pos_y, width = 6, height = 1, id = "cancel"})
+            table.insert(screen.widgets, {x = pos_x + 21, y = pos_y, width = 6, height = 1, id = "cancel"})
 
-            -- next line
-            monitor.setCursorPos(pos_x, pos_y + 2)
+            monitor.setCursorPos(pos_x + 27, pos_y)
             monitor.write("Clear")
-            table.insert(screen.widgets, {x = pos_x, y = pos_y + 2, width = 5, height = 1, id = "clear"})
+            table.insert(screen.widgets, {x = pos_x + 27, y = pos_y, width = 5, height = 1, id = "clear"})
         end  
     end
 
@@ -226,14 +225,17 @@ function reload_turtles()
     end
 
     frozen.is_frozen = false
+    speaker.playSound("entity.experience_orb.pickup")
+
     refresh_screen()
     return all
 end
 
 function do_action(command_provider, can_busy_do)
+    speaker.playSound("block.anvil.hit")
     frozen.is_frozen = true
     frozen.progress = 0
-    frozen.message = "Commanding turtles..."
+    frozen.message = "Sending commands..."
 
     local count = 0
     local done = 0
@@ -264,6 +266,7 @@ function do_action(command_provider, can_busy_do)
     frozen.is_frozen = false
     frozen.progress = 0
     frozen.message = "Done!"
+    speaker.playSound("entity.experience_orb.pickup")
     refresh_screen()
 end
 
