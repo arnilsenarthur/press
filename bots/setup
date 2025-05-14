@@ -46,7 +46,7 @@ for i = 2, #arg do
     end
 
     print("[Setup] Downloading code from " .. url)
-    shell.run("wget", URL_BASE .. url, filename)
+    shell.run("wget", url, filename)
     i = i + 1
     if not fs.exists(filename) then
         print("[Error] Failed to download " .. filename)
@@ -60,4 +60,3 @@ end
 print("[Setup] Setup finished as " .. idx .. idy)
 sleep(3)
 os.reboot()
-
