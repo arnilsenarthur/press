@@ -220,7 +220,6 @@ function reorient()
     parallel.waitForAll(task_reorient, check_cancel)
     print("[Info] Task finished.")
     
-    
     local has, data = turtle.inspectDown()
     oriented = has and data.name == BLOCK_TOP_RIGHT
     return oriented
@@ -457,6 +456,14 @@ function action_pick(slot)
     return true
 end
 
+if settings.get("pos_update_id") then
+    local id = tonumber(settings.get("pos_update_id"))
+    settings.unset("pos_update_id")
+    settings.save()
+    rednet.send(id, "done", PROTOCOL)
+    print("[Info] Sending update callback!")
+end
+
 while true do
     print("[Info] Waiting for commands...")
     local id, msg, proto = rednet.receive(PROTOCOL)
@@ -502,9 +509,12 @@ while true do
         local result = action_build(grid)
         rednet.send(id, "done " .. tostring(result), PROTOCOL)
     elseif msg:sub(1, 6) == "update" then
-        local pastebin_id = msg:sub(8)
-        print("[Info] Updating code from url " .. pastebin_id .. "...")
-        shell.run("update", "startup.lua", pastebin_id)
+        local url = msg:sub(8)
+        print("[Info] Updating code from url " .. url .. "...")
+        shell.run("update", "startup.lua", url)
+
+        settings.set("pos_update_id", id)
+        settings.save()
         return
     else
         print("[Error] Unknown command: " .. msg)
