@@ -47,7 +47,7 @@ function check_cancel()
 end
 
 function refuel_safe()
-    if turtle.getFuelLevel() < 1 then
+    if turtle.getFuelLevel() < 32 then
         local count = turtle.getItemCount(16)
         if count > 0 then
             turtle.select(16)
