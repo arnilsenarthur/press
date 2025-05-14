@@ -256,6 +256,7 @@ while true do
     if event == "monitor_touch" then
         for _, widget in ipairs(screen.widgets) do
             if x >= widget.x and x <= widget.x + widget.width - 1 and y >= widget.y and y <= widget.y + widget.height - 1 then
+                print("[Info] Widget " .. widget.id .. " clicked!")
                 if widget.id:sub(1, 5) == "grid_" then
                     local gridX, gridY = widget.id:match("grid_(%d+)_(%d+)")
                     gridX = tonumber(gridX)
@@ -317,6 +318,8 @@ while true do
                         end
                     end
                 end
+
+                break
             end
         end
         print("[Info] Monitor touched at " .. x .. ", " .. y)
