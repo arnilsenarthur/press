@@ -108,11 +108,12 @@ function refresh_screen()
             --progress bar 2 lines below
             local progress_width = 34
             local progress = math.floor(frozen.progress * progress_width)
-            monitor.setCursorPos(pos_x, pos_y + 2)
             
+            monitor.setCursorPos(pos_x, pos_y + 2)
             monitor.setTextColor(colors.red)
             monitor.write(string.rep("-", progress_width))
-
+            
+            monitor.setBackgroundColor(colors.green)
             monitor.setTextColor(colors.green)
             monitor.write(string.rep("-", progress))
 
