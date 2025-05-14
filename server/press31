@@ -36,7 +36,6 @@ function get_turtle(x, y)
 end
 
 function refresh_screen()
-
     function draw_grid(pos_x, pos_y)
         -- Clear widgets
         screen.widgets = {}
@@ -53,7 +52,13 @@ function refresh_screen()
 
         for y = 0, GRID_HEIGHT - 1 do
             monitor.setTextColor(colors.lightGray)
-            monitor.setCursorPos(pos_x, pos_y + y * 2 + 2)
+            
+            if y > 8 then
+                monitor.setCursorPos(pos_x - 1, pos_y + y * 2 + 2)
+            else
+                monitor.setCursorPos(pos_x, pos_y + y * 2 + 2)
+            end
+
             monitor.write(tostring(y + 1) .. " ")
             table.insert(screen.widgets, {x = pos_x, y = pos_y + y * 2 + 2, width = 1, height = 1, id = "row_" .. y})
 
@@ -260,10 +265,13 @@ while true do
                             print("[Info] Turtle " .. turtle.name .. " unselected!")
                         end
                     end
+                    refresh_screen()
                 elseif widget.id:sub(1, 5) == "column_" then
                     print("[Info] Column " .. widget.id .. " clicked!")
+                    refresh_screen()
                 elseif widget.id:sub(1, 4) == "row_" then
                     print("[Info] Row " .. widget.id .. " clicked!")
+                    refresh_screen()
                 end
             end
         end
