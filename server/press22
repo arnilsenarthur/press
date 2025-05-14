@@ -15,6 +15,49 @@ PREPARE_TIMEOUT = 25
 local modem = peripheral.find("modem", rednet.open)
 local turtles = {}
 
+-- wrap a monitor to display the turtle states
+local monitor = peripheral.find("monitor")
+if monitor then
+    --monitor.setTextScale(1)
+    monitor.setTextColor(colors.white)
+    monitor.setBackgroundColor(colors.black)
+    monitor.clear()
+end
+
+function refresh_screen()
+
+    function draw_grid(pos_x, pos_y)
+        --in white wwrite the letters (x axis)
+        term.setTextColor(colors.white)
+        term.setCursorPos(pos_x, pos_y)
+
+        for x = 0, GRID_WIDTH - 1 do
+            term.write(string.char(65 + x) .. " ")
+        end
+
+        for y = 0, GRID_HEIGHT - 1 do
+            term.setCursorPos(pos_x, pos_y + y * 2 + 2)
+            term.write(tostring(y + 1) .. " ")
+
+            -- draw the grid
+            for x = 0, GRID_WIDTH - 1 do
+                term.setCursorPos(pos_x + x * 2, pos_y + y * 2 + 2)
+                if turtles[y * GRID_WIDTH + x + 1] then
+                    if turtles[y * GRID_WIDTH + x + 1].ack then
+                        term.setTextColor(colors.green)
+                    else
+                        term.setTextColor(colors.red)
+                    end
+                else
+                    term.setTextColor(colors.white)
+                end
+
+                term.write("O")
+            end
+        end
+    end
+end
+
 function reload_turtles()
     print("[Info] Reloading turtles...")
     local count = 0
@@ -44,6 +87,8 @@ function reload_turtles()
                     all = false
                 end
             end
+
+            refresh_screen()
         end
     end
 
@@ -73,6 +118,7 @@ function reload_turtles()
                 start = os.clock()
                 term.setCursorPos(x, y)
                 print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
+                refresh_screen()
             end
         end
 
@@ -88,6 +134,7 @@ function reload_turtles()
         end
     end
 
+    refresh_screen()
     return all
 end
 
@@ -162,6 +209,9 @@ function get_grid(url)
     return grid
 end
 
+reload_turtles()
+return
+
 term.clear()
 term.setCursorPos(1, 1)
 
@@ -178,7 +228,7 @@ if args[1] == "clear" then
     end
     
     wait_for_done(240)
-elseif args[i] ~= nil and args[1]:sub(1, 5) == "build" then
+elseif args[1]:sub(1, 5) == "build" then
     local url = args[2]
 
     if not url then
