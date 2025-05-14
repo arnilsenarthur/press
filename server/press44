@@ -156,7 +156,7 @@ function reload_turtles()
                 end
             end
 
-            frozen.progress = math.floor(count / (GRID_WIDTH * GRID_HEIGHT))
+            frozen.progress = count / (GRID_WIDTH * GRID_HEIGHT)
             refresh_screen()
         end
     end
@@ -227,7 +227,7 @@ function do_action(command_provider, can_busy_do)
     for id, bot in pairs(turtles) do
         if bot.selected then
             done = done + 1
-            frozen.progress = math.floor(done / count)
+            frozen.progress = done / count
 
             if can_busy_do or not bot.busy then
                 turtles[id].busy = true
