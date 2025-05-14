@@ -173,7 +173,7 @@ if args[1] == "clear" then
     end
     
     wait_for_done(240)
-elseif args[1]:sub(1, 5) == "build" then
+elseif args[i] and args[1]:sub(1, 5) == "build" then
     local url = args[2]
 
     if not url then
