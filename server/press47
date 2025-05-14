@@ -76,7 +76,11 @@ function refresh_screen()
                     end
 
                     if turtle.ack then
-                        monitor.setTextColor(colors.green)
+                        if turtle.busy then
+                            monitor.setTextColor(colors.orange)
+                        else
+                            monitor.setTextColor(colors.green)
+                        end
                     else
                         monitor.setTextColor(colors.red)
                     end
@@ -249,90 +253,99 @@ function do_action(command_provider, can_busy_do)
     frozen.is_frozen = false
     frozen.progress = 0
     frozen.message = "Done!"
+    refresh_screen()
 end
 
 reload_turtles()
 
 -- Handle clicks on the monitor
 while true do
-    local event, side, x, y = os.pullEvent("monitor_touch")
-    if event == "monitor_touch" then
-        for _, widget in ipairs(screen.widgets) do
-            if x >= widget.x and x <= widget.x + widget.width - 1 and y >= widget.y and y <= widget.y + widget.height - 1 then
-                speaker.playSound("ui.button.click")
-                -- Grid
-                if widget.id:sub(1, 5) == "grid_" then
-                    local gridX, gridY = widget.id:match("grid_(%d+)_(%d+)")
-                    gridX = tonumber(gridX)
-                    gridY = tonumber(gridY)
-                    local turtle = get_turtle(gridX, gridY)
-                    if turtle then
-                        turtle.selected = not turtle.selected and turtle.ack
-                    end
-                    refresh_screen()
-                elseif widget.id:sub(1, 7) == "column_" then
-                    local column = tonumber(widget.id:sub(8))
-                    local turtle = get_turtle(column, 0)
-                    local new_value = not turtle.selected and turtle.ack
-                    for y = 0, GRID_HEIGHT - 1 do
-                        local turtle = get_turtle(column, y)
-                        if turtle then
-                            turtle.selected = new_value
-                            if new_value then
-                                print("[Info] Turtle " .. turtle.name .. " selected!")
-                            else
-                                print("[Info] Turtle " .. turtle.name .. " unselected!")
+    parallel.waitForAny(
+        function()
+            local event, side, x, y = os.pullEvent("monitor_touch")
+            if event == "monitor_touch" then
+                for _, widget in ipairs(screen.widgets) do
+                    if x >= widget.x and x <= widget.x + widget.width - 1 and y >= widget.y and y <= widget.y + widget.height - 1 then
+                        speaker.playSound("ui.button.click")
+                        -- Grid
+                        if widget.id:sub(1, 5) == "grid_" then
+                            local gridX, gridY = widget.id:match("grid_(%d+)_(%d+)")
+                            gridX = tonumber(gridX)
+                            gridY = tonumber(gridY)
+                            local turtle = get_turtle(gridX, gridY)
+                            if turtle then
+                                turtle.selected = not turtle.selected and turtle.ack
                             end
-                        end
-                    end
-                    refresh_screen()
-                elseif widget.id:sub(1, 4) == "row_" then
-                    local row = tonumber(widget.id:sub(5))
-                    local turtle = get_turtle(0, row)
-                    local new_value = not turtle.selected
-                    for x = 0, GRID_WIDTH - 1 do
-                        local turtle = get_turtle(x, row)
-                        if turtle then
-                            turtle.selected = new_value and turtle.ack
-                        end
-                    end
-                    refresh_screen()
-                elseif widget.id == "all" then
-                    print("[Info] All turtles clicked!")
-                    -- use the first turtle as a reference
-                    local turtle = get_turtle(0, 0)
-                    local new_value = not turtle.selected and turtle.ack
+                            refresh_screen()
+                        elseif widget.id:sub(1, 7) == "column_" then
+                            local column = tonumber(widget.id:sub(8))
+                            local turtle = get_turtle(column, 0)
+                            local new_value = not turtle.selected and turtle.ack
+                            for y = 0, GRID_HEIGHT - 1 do
+                                local turtle = get_turtle(column, y)
+                                if turtle then
+                                    turtle.selected = new_value
+                                    if new_value then
+                                        print("[Info] Turtle " .. turtle.name .. " selected!")
+                                    else
+                                        print("[Info] Turtle " .. turtle.name .. " unselected!")
+                                    end
+                                end
+                            end
+                            refresh_screen()
+                        elseif widget.id:sub(1, 4) == "row_" then
+                            local row = tonumber(widget.id:sub(5))
+                            local turtle = get_turtle(0, row)
+                            local new_value = not turtle.selected
+                            for x = 0, GRID_WIDTH - 1 do
+                                local turtle = get_turtle(x, row)
+                                if turtle then
+                                    turtle.selected = new_value and turtle.ack
+                                end
+                            end
+                            refresh_screen()
+                        elseif widget.id == "all" then
+                            print("[Info] All turtles clicked!")
+                            -- use the first turtle as a reference
+                            local turtle = get_turtle(0, 0)
+                            local new_value = not turtle.selected and turtle.ack
 
-                    for id, bot in pairs(turtles) do
-                        bot.selected = new_value
+                            for id, bot in pairs(turtles) do
+                                bot.selected = new_value
+                            end
+                            refresh_screen()
+                        elseif widget.id == "refresh" then
+                            print("[Info] Refreshing turtles...")
+                            reload_turtles()
+                            refresh_screen()
+                        elseif widget.id == "update" then
+                            monitor.clear()
+                            monitor.setCursorPos(1, 1)
+                            monitor.setTextColor(colors.yellow)
+                            monitor.setBackgroundColor(colors.black)
+                            monitor.setTextScale(2)
+                            monitor.write("Insert the URL on the console:")
+                            print("Write the URL to download the update file:")
+                            local url = read()
+                            
+                            function get_cmd(id, bot)
+                                return "update " .. url
+                            end
+                            
+                            do_action(get_cmd, false)
+                            print("[Info] Update command sent to turtles.")
+                        end
+
+                        break
                     end
-                    refresh_screen()
-                elseif widget.id == "refresh" then
-                    print("[Info] Refreshing turtles...")
-                    reload_turtles()
-                    refresh_screen()
-                elseif widget.id == "update" then
-                    monitor.clear()
-                    monitor.setCursorPos(1, 1)
-                    monitor.setTextColor(colors.yellow)
-                    monitor.setBackgroundColor(colors.black)
-                    monitor.setTextScale(2)
-                    monitor.write("Insert the URL on the console:")
-                    print("Write the URL to download the update file:")
-                    local url = read()
-                    
-                    function get_cmd(id, bot)
-                        return "update " .. url
-                    end
-                    
-                    do_action(get_cmd, false)
-                    print("[Info] Update command sent to turtles.")
                 end
-
-                break
             end
+        end,
+        function()
+            local id, msg, proto = rednet.receive(PROTOCOL)
+            print("[Info] Received message from " .. id .. ": " .. msg)
         end
-    end
+    )
 end
 
 return
