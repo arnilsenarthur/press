@@ -380,6 +380,8 @@ function action_pick(slot)
     function task_pick()
         print("[Info] Starting picking...")
 
+        turtle.select(slot)
+
         local count = turtle.getItemCount(slot)
         while count < 64 do
             turtle.suckDown(64 - count)
