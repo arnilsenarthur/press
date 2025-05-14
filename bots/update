@@ -1,0 +1,30 @@
+local arg = {...}
+
+if not arg[1] then
+    print("[Error] No script name provided.")
+    return
+end
+
+if not arg[2] then
+    print("[Error] No URL provided.")
+    return
+end
+
+if fs.exists(arg[1]) then
+    fs.delete(arg[1])
+end
+
+print("[Update] Downloading code from " .. arg[2])
+shell.run("wget", arg[2], arg[1])
+print("[Update] Download complete to " .. arg[1])
+
+if not fs.exists(arg[1]) then
+    print("[Error] Failed to download " .. arg[1])
+    return
+else
+    print("[Update] Download complete to " .. arg[1])
+
+    print("[Update] Launching new version...")
+    sleep(0.5)
+    shell.run(arg[1])
+end
