@@ -256,7 +256,6 @@ while true do
     if event == "monitor_touch" then
         for _, widget in ipairs(screen.widgets) do
             if x >= widget.x and x <= widget.x + widget.width - 1 and y >= widget.y and y <= widget.y + widget.height - 1 then
-                print("[Info] Widget " .. widget.id .. " clicked!")
                 if widget.id:sub(1, 5) == "grid_" then
                     local gridX, gridY = widget.id:match("grid_(%d+)_(%d+)")
                     gridX = tonumber(gridX)
@@ -264,11 +263,6 @@ while true do
                     local turtle = get_turtle(gridX, gridY)
                     if turtle then
                         turtle.selected = not turtle.selected
-                        if turtle.selected then
-                            print("[Info] Turtle " .. turtle.name .. " selected!")
-                        else
-                            print("[Info] Turtle " .. turtle.name .. " unselected!")
-                        end
                     end
                     refresh_screen()
                 elseif widget.id:sub(1, 6) == "column_" then
@@ -295,28 +289,19 @@ while true do
                         local turtle = get_turtle(x, row)
                         if turtle then
                             turtle.selected = new_value
-                            if new_value then
-                                print("[Info] Turtle " .. turtle.name .. " selected!")
-                            else
-                                print("[Info] Turtle " .. turtle.name .. " unselected!")
-                            end
                         end
                     end
                     refresh_screen()
                 elseif widget.id == "all" then
                     print("[Info] All turtles clicked!")
                     -- use the first turtle as a reference
-                    local turtle = turtles[next(turtles)]
+                    local turtle = tget_turtle(0, 0)
                     local new_value = not turtle.selected
 
                     for id, bot in pairs(turtles) do
                         bot.selected = new_value
-                        if new_value then
-                            print("[Info] Turtle " .. bot.name .. " selected!")
-                        else
-                            print("[Info] Turtle " .. bot.name .. " unselected!")
-                        end
                     end
+                    refresh_screen()
                 end
 
                 break
