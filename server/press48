@@ -192,7 +192,7 @@ function reload_turtles()
             if id and msg:sub(1, 3) == "ack" then
                 turtles[id].ack = true
                 turtles[id].selected = true
-                turtles[id].busy = false
+                turtles[id].busy = msg:sub(5) == "true"
                 ready = ready + 1
                 start = os.clock()
                 term.setCursorPos(x, y)
@@ -343,8 +343,24 @@ while true do
         end,
         function()
             local id, msg, proto = rednet.receive(PROTOCOL)
-            print("[Info] Received message from " .. id .. ": " .. msg)
-        end
+            if msg == "done" then
+                print("[Info] Turtle " .. id .. " finished!")
+                local turtle = turtles[id]
+                if turtle then
+                    turtle.busy = false
+                end
+                refresh_screen()
+            elseif msg:sub(1, 3) == "ack" then
+                local id = tonumber(msg:sub(4))
+                local turtle = turtles[id]
+                if turtle then
+                    turtle.ack = true
+                    turtle.busy = msg:sub(6) == "true"
+                    turtle.selected = true
+                end
+                refresh_screen()
+            end
+        end 
     )
 end
 
