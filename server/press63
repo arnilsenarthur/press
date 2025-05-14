@@ -132,7 +132,7 @@ function refresh_screen()
             monitor.write("Clear")
             table.insert(screen.widgets, {x = pos_x + 28, y = pos_y, width = 5, height = 1, id = "clear"})
 
-            monitor.setCursorPos(pos_x, pos_y + 2)
+            monitor.setCursorPos(pos_x - 1, pos_y + 2)
             monitor.setBackgroundColor(colors.black)
             monitor.setTextColor(colors.white)
             monitor.write("Pick: ")
@@ -141,7 +141,7 @@ function refresh_screen()
             monitor.setTextColor(colors.black)
 
             -- print all numbers from 1 to 16
-            local pick_pos = pos_x + 6
+            local pick_pos = pos_x + 4
             
             for i = 1, 16 do
                 monitor.setCursorPos(pick_pos, pos_y + 2)
