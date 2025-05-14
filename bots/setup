@@ -1,3 +1,5 @@
+local arg = {...}
+
 term.clear()
 term.setCursorPos(1, 1)
 
@@ -54,4 +56,3 @@ for i = 2, #arg do
     end
     i = i + 1
 end
-
