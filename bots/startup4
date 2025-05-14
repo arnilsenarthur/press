@@ -256,6 +256,7 @@ function action_clear()
 
     parallel.waitForAll(task_clear, check_cancel)
     print("[Info] Task finished.")
+    return true
 end
 
 -- Action: Build
@@ -330,6 +331,7 @@ function action_build(data)
 
     parallel.waitForAll(task_build, check_cancel)
     print("[Info] Task finished.")
+    return true
 end
 
 -- Action: Empty
@@ -368,6 +370,7 @@ function action_empty()
 
     parallel.waitForAll(task_empty, check_cancel)
     print("[Info] Task finished.")
+    return true
 end
 
 function action_pick(slot)
@@ -394,6 +397,7 @@ function action_pick(slot)
 
     parallel.waitForAll(task_pick, check_cancel)
     print("[Info] Task finished.")
+    return true
 end
 
 while true do
