@@ -51,7 +51,7 @@ function reload_turtles()
     print("[Info] Waiting for handshakes...")
     
     function send()
-        for id, bot in pairs(bots) do
+        for id, bot in pairs(turtles) do
             rednet.send(id, "handshake", PROTOCOL)
             sleep(0.01)
         end
