@@ -116,8 +116,8 @@ function refresh_screen()
             table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 6, height = 1, id = "update"})
 
             monitor.setCursorPos(pos_x + 15, pos_y)
-            monitor.write("Empty")
-            table.insert(screen.widgets, {x = pos_x + 15, y = pos_y, width = 5, height = 1, id = "empty"})
+            monitor.write("Build")
+            table.insert(screen.widgets, {x = pos_x + 15, y = pos_y, width = 5, height = 1, id = "build"})
 
             monitor.setCursorPos(pos_x + 21, pos_y)
             monitor.write("Cancel")
@@ -126,6 +126,25 @@ function refresh_screen()
             monitor.setCursorPos(pos_x + 28, pos_y)
             monitor.write("Clear")
             table.insert(screen.widgets, {x = pos_x + 28, y = pos_y, width = 5, height = 1, id = "clear"})
+
+            -- new line
+            monitor.setCursorPos(pos_x, pos_y + 2)
+            monitor.write("Empty")
+            table.insert(screen.widgets, {x = pos_x, y = pos_y + 2, width = 5, height = 1, id = "empty"})
+
+            monitor.setBackgroundColor(colors.black)
+            monitor.setTextColor(colors.white)
+            monitor.write(" Pick: ")
+
+            monitor.setBackgroundColor(colors.yellow)
+            monitor.setTextColor(colors.black)
+
+            -- print all numbers from 1 to 16
+            term.setCursorPos(pos_x + 14, pos_y + 2)
+            for i = 1, GRID_SIZE do
+                monitor.write(" " .. i)
+                table.insert(screen.widgets, {x = pos_x + 14 + i * 2, y = pos_y + 2, width = 1, height = 1, id = "pick_" .. i})
+            end
         end  
     end
 
@@ -145,6 +164,7 @@ function reload_turtles()
     frozen.message = "Reloading turtles..."
 
     local count = 0
+    local found = 0
     local all = true
 
     for y = 0, GRID_HEIGHT - 1 do
@@ -157,7 +177,7 @@ function reload_turtles()
                 turtles[id].busy = false
 
                 if turtles[id].found then
-                    count = count + 1
+                    found = found + 1
                 else
                     print("[Error] Bot " .. name .. " not found!")
                     all = false
@@ -165,19 +185,20 @@ function reload_turtles()
             else
                 if id then
                     turtles[id] = {name = name, ack = false, x = x, y = y, found = id ~= nil, busy = false, selected = false}
-                    count = count + 1
+                    found = found + 1
                 else
                     print("[Error] Bot " .. name .. " not found!")
                     all = false
                 end
             end
-
+            
+            count = count + 1
             frozen.progress = count / (GRID_WIDTH * GRID_HEIGHT)
             refresh_screen()
         end
     end
 
-    print("[Info] Found " .. count .. " turtles.")
+    print("[Info] Found " .. found .. " turtles.")
     print("[Info] Waiting for handshakes...")
 
     frozen.progress = 0
@@ -195,10 +216,10 @@ function reload_turtles()
     function receive()
         local x, y = term.getCursorPos()
         term.setCursorPos(x, y)
-        print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
+        print("[Info] Number of handshaken turtles: " .. ready .. "/" .. found)
 
         local start = os.clock()
-        while os.clock() - start < HANDSHAKE_TIMEOUT and ready < count do
+        while os.clock() - start < HANDSHAKE_TIMEOUT and ready < found do
             local id, msg, proto = rednet.receive(PROTOCOL, HANDSHAKE_TIMEOUT - (os.clock() - start))
             if id and msg:sub(1, 3) == "ack" then
                 turtles[id].ack = true
@@ -207,8 +228,8 @@ function reload_turtles()
                 ready = ready + 1
                 start = os.clock()
                 term.setCursorPos(x, y)
-                print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
-                frozen.progress = ready / count
+                print("[Info] Number of handshaken turtles: " .. ready .. "/" .. found)
+                frozen.progress = ready / found
                 refresh_screen()
             end
         end
