@@ -215,7 +215,7 @@ function reorient()
     
         print("[Info] Reorientation done.")
         running = false
-        
+    end
     
     parallel.waitForAll(task_reorient, check_cancel)
     print("[Info] Task finished.")
