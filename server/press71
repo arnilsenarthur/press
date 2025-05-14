@@ -17,7 +17,6 @@ local turtles = {}
 local screen = {widgets = {}}
 local speaker = peripheral.find("speaker")
 local frozen = { is_frozen = false, progress = 0, message = ""}
-local hex = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "A", "B", "C", "D", "E", "F"}
 
 -- wrap a monitor to display the turtle states
 local monitor = peripheral.find("monitor")
@@ -216,8 +215,6 @@ end
 
 -- Methods
 function reload_turtles()
-    speaker.playSound("block.anvil.land")
-    print("[Info] Reloading turtles...")
     frozen.is_frozen = true
     frozen.progress = 0
     frozen.message = "Reloading turtles..."
@@ -238,7 +235,6 @@ function reload_turtles()
                 if turtles[id].found then
                     found = found + 1
                 else
-                    print("[Error] Bot " .. name .. " not found!")
                     all = false
                 end
             else
@@ -246,7 +242,6 @@ function reload_turtles()
                     turtles[id] = {name = name, ack = false, x = x, y = y, found = id ~= nil, busy = false, selected = false}
                     found = found + 1
                 else
-                    print("[Error] Bot " .. name .. " not found!")
                     all = false
                 end
             end
@@ -256,9 +251,6 @@ function reload_turtles()
             refresh_screen()
         end
     end
-
-    print("[Info] Found " .. found .. " turtles.")
-    print("[Info] Waiting for handshakes...")
 
     frozen.progress = 0
     frozen.message = "Waiting for handshakes..."
@@ -273,10 +265,6 @@ function reload_turtles()
     local ready = 0
     
     function receive()
-        local x, y = term.getCursorPos()
-        term.setCursorPos(x, y)
-        print("[Info] Number of handshaken turtles: " .. ready .. "/" .. found)
-
         local start = os.clock()
         while os.clock() - start < HANDSHAKE_TIMEOUT and ready < found do
             local id, msg, proto = rednet.receive(PROTOCOL, HANDSHAKE_TIMEOUT - (os.clock() - start))
@@ -286,21 +274,16 @@ function reload_turtles()
                 turtles[id].busy = msg:sub(5) == "true"
                 ready = ready + 1
                 start = os.clock()
-                term.setCursorPos(x, y)
-                print("[Info] Number of handshaken turtles: " .. ready .. "/" .. found)
                 frozen.progress = ready / found
                 refresh_screen()
             end
         end
-
-        term.write("\n")
     end 
 
     parallel.waitForAll(send, receive)
     
     for id, bot in pairs(turtles) do
         if not bot.ack then
-            print("[Error] Bot " .. bot.name .. " did not handshake!") 
             all = false
         end
     end
@@ -380,11 +363,6 @@ parallel.waitForAll(
                                 local turtle = get_turtle(column, y)
                                 if turtle then
                                     turtle.selected = new_value
-                                    if new_value then
-                                        print("[Info] Turtle " .. turtle.name .. " selected!")
-                                    else
-                                        print("[Info] Turtle " .. turtle.name .. " unselected!")
-                                    end
                                 end
                             end
                             refresh_screen()
@@ -400,8 +378,6 @@ parallel.waitForAll(
                             end
                             refresh_screen()
                         elseif widget.id == "all" then
-                            print("[Info] All turtles clicked!")
-                            -- use the first turtle as a reference
                             local turtle = get_turtle(0, 0)
                             local new_value = not turtle.selected and turtle.ack
 
@@ -410,7 +386,6 @@ parallel.waitForAll(
                             end
                             refresh_screen()
                         elseif widget.id == "refresh" then
-                            print("[Info] Refreshing turtles...")
                             reload_turtles()
                             refresh_screen()
                         elseif widget.id == "update" then
@@ -427,31 +402,24 @@ parallel.waitForAll(
                             end
                             
                             do_action(get_cmd, false)
-                            print("[Info] Update command sent to turtles.")
                         elseif widget.id == "empty" then
-                            print("[Info] Emptying turtles...")
                             function get_cmd(id, bot)
                                 return "empty"
                             end
                             
                             do_action(get_cmd, true)
-                            print("[Info] Empty command sent to turtles.")
                         elseif widget.id == "clear" then
-                            print("[Info] Clearing turtles...")
                             function get_cmd(id, bot)
                                 return "clear"
                             end
                             
                             do_action(get_cmd, true)
-                            print("[Info] Clear command sent to turtles.")
                         elseif widget.id == "cancel" then
-                            print("[Info] Canceling turtles...")
                             function get_cmd(id, bot)
                                 return "cancel"
                             end
                             
                             do_action(get_cmd, true)
-                            print("[Info] Cancel command sent to turtles.")
                         elseif widget.id:sub(1, 5) == "pick_" then
                             local slot = tonumber(widget.id:sub(6))
                             print("[Info] Picking up items from slot " .. slot .. "...")
@@ -460,7 +428,6 @@ parallel.waitForAll(
                             end
                             
                             do_action(get_cmd, true)
-                            print("[Info] Pick command sent to turtles.")
                         elseif widget.id == "build" then
                             monitor.clear()
                             monitor.setCursorPos(1, 1)
