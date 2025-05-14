@@ -23,7 +23,7 @@ function reload_turtles()
         for x = 0, GRID_WIDTH - 1 do
             local name = string.format("robot%d %d", x, y)
             local id = rednet.lookup(PROTOCOL, name)
-            if table.contains(turtles, id) then
+            if turtles[id] then
                 bots[id].found = id ~= nil
                 bots[id].ack = bots[id].ack and id ~= nil
                 bots[id].selected = false
