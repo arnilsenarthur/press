@@ -27,6 +27,11 @@ if not arg[1] then
     return
 end
 
+if arg[1] == "run" then
+    arg = {unpack(arg, 2)}
+end
+
+
 if fs.exists("update.lua") then
     fs.delete("update.lua")
 end
@@ -56,3 +61,4 @@ for i = 2, #arg do
     end
     i = i + 1
 end
+
