@@ -168,7 +168,7 @@ if args[1] == "clear" then
     print("[Info] Clear mode activated!")
     print("[Info] Clearing...")
 
-    for id, bot in pairs(bots) do
+    for id, bot in pairs(turtles) do
         rednet.send(id, "clear", PROTOCOL)
     end
     
@@ -182,7 +182,7 @@ elseif args[1] == "build" then
     local grid = get_grid()
 
     print("[Info] Sending data to turtles...")
-    for id, bot in pairs(bots) do
+    for id, bot in pairs(turtles) do
         local grid_part = ""
         for y = 0, GRID_SIZE - 1 do
             local row = {}
@@ -198,13 +198,13 @@ elseif args[1] == "build" then
     end
     wait_for_done(240)
 elseif args[1] == "update" then
-    local pastebin_id = args[2]
-    if not pastebin_id then
-        print("[Error] No pastebin id provided!")
+    local url = args[2]
+    if not url then
+        print("[Error] No URL provided!")
         return
     end
 
-    if not init_bots() then
+    if not reload_turtles() then
         print("[Error] Initlization shutdown!")
         return
     end
@@ -212,7 +212,7 @@ elseif args[1] == "update" then
     local count = 0
     local ready = 0
 
-    for id, bot in pairs(bots) do
+    for id, bot in pairs(turtles) do
         count = count + 1
     end
 
@@ -220,7 +220,7 @@ elseif args[1] == "update" then
     term.setCursorPos(x, y)
     print("[Info] Number of ready turtles: " .. ready .. "/" .. count)
 
-    for id, bot in pairs(bots) do
+    for id, bot in pairs(turtles) do
         ready = ready + 1
         term.setCursorPos(x, y)
         print("[Info] Number of ready turtles: " .. ready .. "/" .. count)
@@ -243,7 +243,7 @@ elseif args[1] == "pick" then
     end
 
     print("[Info] Picking up items...")
-    for id, bot in pairs(bots) do
+    for id, bot in pairs(turtles) do
         rednet.send(id, "pick " .. slot, PROTOCOL)
     end
     wait_for_done(240)
@@ -253,7 +253,7 @@ elseif args[1] == "empty" then
         return
     end
     print("[Info] Emptying items...")
-    for id, bot in pairs(bots) do
+    for id, bot in pairs(turtles) do
         rednet.send(id, "empty", PROTOCOL)
     end
     wait_for_done(240)
