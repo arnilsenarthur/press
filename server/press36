@@ -71,7 +71,7 @@ function refresh_screen()
                 turtle = get_turtle(x, y)
                 if turtle then
                     if turtle.selected then
-                        monitor.setBackgroundColor(colors.white)
+                        monitor.setBackgroundColor(colors.gray)
                     else
                         monitor.setBackgroundColor(colors.black)
                     end
@@ -271,7 +271,7 @@ while true do
                         end
                     end
                     refresh_screen()
-                elseif widget.id:sub(1, 5) == "column_" then
+                elseif widget.id:sub(1, 6) == "column_" then
                     local column = tonumber(widget.id:sub(7))
                     local turtle = get_turtle(column, 0)
                     local new_value = not turtle.selected
@@ -288,7 +288,7 @@ while true do
                     end
                     refresh_screen()
                 elseif widget.id:sub(1, 4) == "row_" then
-                    local row = tonumber(widget.id:sub(6))
+                    local row = tonumber(widget.id:sub(5))
                     local turtle = get_turtle(0, row)
                     local new_value = not turtle.selected
                     for x = 0, GRID_WIDTH - 1 do
