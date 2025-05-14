@@ -30,7 +30,7 @@ function refresh_screen()
         monitor.setBackgroundColor(colors.black)
         monitor.setTextColor(colors.white)
         monitor.clear()
-        monitor.setCursorPos(pos_x, pos_y)
+        monitor.setCursorPos(pos_x + 2, pos_y)
 
         for x = 0, GRID_WIDTH - 1 do
             monitor.write(string.char(65 + x) .. " ")
@@ -42,7 +42,7 @@ function refresh_screen()
 
             -- draw the grid
             for x = 0, GRID_WIDTH - 1 do
-                monitor.setCursorPos(pos_x + x * 2, pos_y + y * 2 + 2)
+                monitor.setCursorPos(pos_x + 2 + x * 2, pos_y + y * 2 + 2)
                 if turtles[y * GRID_WIDTH + x + 1] then
                     if turtles[y * GRID_WIDTH + x + 1].ack then
                         monitor.setTextColor(colors.green)
