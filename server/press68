@@ -105,7 +105,6 @@ function refresh_screen()
             monitor.setCursorPos(pos_x, pos_y)
             monitor.write(frozen.message .. " " .. string.format("%.2f%%", frozen.progress * 100))
 
-            --progress bar 2 lines below
             local progress_width = 34
             local progress = math.floor(frozen.progress * progress_width)
             
@@ -113,10 +112,9 @@ function refresh_screen()
             monitor.setTextColor(colors.red)
             monitor.write(string.rep("-", progress_width))
             
-            monitor.setBackgroundColor(colors.green)
+            monitor.setCursorPos(pos_x, pos_y + 2)
             monitor.setTextColor(colors.green)
             monitor.write(string.rep("-", progress))
-
         else
             monitor.setBackgroundColor(colors.orange)
             monitor.setTextColor(colors.black)
@@ -424,9 +422,16 @@ parallel.waitForAll(
                             
                             do_action(get_cmd, true)
                             print("[Info] Cancel command sent to turtles.")
+                        elseif widget.id:sub(1, 5) == "pick_" then
+                            local slot = tonumber(widget.id:sub(6))
+                            print("[Info] Picking up items from slot " .. slot .. "...")
+                            function get_cmd(id, bot)
+                                return "pick " .. slot
+                            end
+                            
+                            do_action(get_cmd, true)
+                            print("[Info] Pick command sent to turtles.")
                         end
-
-                        break
                     end
                 end
             end
