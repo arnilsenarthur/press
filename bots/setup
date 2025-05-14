@@ -22,16 +22,7 @@ settings.set("robot_x", idx)
 settings.set("robot_y", idy)
 settings.save()
 
-if not arg[1] then
-    print("[Error] No update URL provided.")
-    return
-end
-
-if arg[1] == "run" then
-    arg = {unpack(arg, 2)}
-end
-
-if not arg[1] then
+if not arg[3] then
     print("[Error] No update URL provided.")
     return
 end
@@ -40,10 +31,10 @@ if fs.exists("update.lua") then
     fs.delete("update.lua")
 end
 
-print("[Setup] Downloading code from " .. arg[1])
-shell.run("wget", arg[1], "update.lua")
+print("[Setup] Downloading code from " .. arg[13])
+shell.run("wget", arg[3], "update.lua")
 
-for i = 2, #arg do
+for i = 4, #arg do
     local filename = arg[i]
     local url = arg[i + 1]
     if not filename or not url then
@@ -65,3 +56,4 @@ for i = 2, #arg do
     end
     i = i + 1
 end
+
