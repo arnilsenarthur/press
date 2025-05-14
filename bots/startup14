@@ -511,10 +511,11 @@ while true do
     elseif msg:sub(1, 6) == "update" then
         local url = msg:sub(8)
         print("[Info] Updating code from url " .. url .. "...")
-        shell.run("update", "startup.lua", url)
-
+        print("[Info] Saving settings...")
         settings.set("pos_update_id", id)
         settings.save()
+
+        shell.run("update", "startup.lua", url)
         return
     else
         print("[Error] Unknown command: " .. msg)
