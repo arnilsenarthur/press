@@ -27,35 +27,38 @@ end
 function refresh_screen()
 
     function draw_grid(pos_x, pos_y)
-        --in white wwrite the letters (x axis)
-        term.setTextColor(colors.white)
-        term.setCursorPos(pos_x, pos_y)
+        monitor.setBackgroundColor(colors.black)
+        monitor.setTextColor(colors.white)
+        monitor.clear()
+        monitor.setCursorPos(pos_x, pos_y)
 
         for x = 0, GRID_WIDTH - 1 do
-            term.write(string.char(65 + x) .. " ")
+            monitor.write(string.char(65 + x) .. " ")
         end
 
         for y = 0, GRID_HEIGHT - 1 do
-            term.setCursorPos(pos_x, pos_y + y * 2 + 2)
-            term.write(tostring(y + 1) .. " ")
+            monitor.setCursorPos(pos_x, pos_y + y * 2 + 2)
+            monitor.write(tostring(y + 1) .. " ")
 
             -- draw the grid
             for x = 0, GRID_WIDTH - 1 do
-                term.setCursorPos(pos_x + x * 2, pos_y + y * 2 + 2)
+                monitor.setCursorPos(pos_x + x * 2, pos_y + y * 2 + 2)
                 if turtles[y * GRID_WIDTH + x + 1] then
                     if turtles[y * GRID_WIDTH + x + 1].ack then
-                        term.setTextColor(colors.green)
+                        monitor.setTextColor(colors.green)
                     else
-                        term.setTextColor(colors.red)
+                        monitor.setTextColor(colors.red)
                     end
                 else
-                    term.setTextColor(colors.white)
+                    monitor.setTextColor(colors.white)
                 end
 
-                term.write("O")
+                monitor.write("O")
             end
         end
     end
+
+    draw_grid(1, 1)
 end
 
 function reload_turtles()
