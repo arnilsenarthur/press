@@ -21,7 +21,6 @@ local frozen = { is_frozen = false, progress = 0, message = ""}
 -- wrap a monitor to display the turtle states
 local monitor = peripheral.find("monitor")
 if monitor then
-    --monitor.setTextScale(1)
     monitor.setTextColor(colors.white)
     monitor.setBackgroundColor(colors.black)
     monitor.clear()
@@ -114,13 +113,20 @@ function refresh_screen()
             monitor.setCursorPos(pos_x + 8, pos_y)
             monitor.write("Update")
             table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 7, height = 1, id = "update"})
+
+            monitor.setCursorPos(pos_x + 15, pos_y)
+            monitor.write("Empty")
+            table.insert(screen.widgets, {x = pos_x + 16, y = pos_y, width = 7, height = 1, id = "empty"})
+
+            monitor.setCursorPos(pos_x + 21, pos_y)
+            monitor.write("Clear")
+            table.insert(screen.widgets, {x = pos_x + 23, y = pos_y, width = 7, height = 1, id = "clear"})
         end  
     end
 
     -- Clear widgets
     screen.widgets = {}
     monitor.clear()
-    monitor.setTextScale(1)
 
     draw_header(4, 2)
     draw_grid(4, 4)
@@ -323,7 +329,6 @@ parallel.waitForAll(
                             monitor.setCursorPos(1, 1)
                             monitor.setTextColor(colors.yellow)
                             monitor.setBackgroundColor(colors.black)
-                            monitor.setTextScale(2)
                             monitor.write("Insert the URL on the console:")
                             print("Write the URL to download the update file:")
                             local url = read()
@@ -334,6 +339,22 @@ parallel.waitForAll(
                             
                             do_action(get_cmd, false)
                             print("[Info] Update command sent to turtles.")
+                        elseif widget.id == "empty" then
+                            print("[Info] Emptying turtles...")
+                            function get_cmd(id, bot)
+                                return "empty"
+                            end
+                            
+                            do_action(get_cmd, true)
+                            print("[Info] Empty command sent to turtles.")
+                        elseif widget.id == "clear" then
+                            print("[Info] Clearing turtles...")
+                            function get_cmd(id, bot)
+                                return "clear"
+                            end
+                            
+                            do_action(get_cmd, true)
+                            print("[Info] Clear command sent to turtles.")
                         end
 
                         break
