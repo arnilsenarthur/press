@@ -46,7 +46,7 @@ function refresh_screen()
         end
 
         for y = 0, GRID_HEIGHT - 1 do
-            term.setTextColor(colors.lightGray)
+            monitor.setTextColor(colors.lightGray)
             monitor.setCursorPos(pos_x, pos_y + y * 2 + 2)
             monitor.write(tostring(y + 1) .. " ")
 
