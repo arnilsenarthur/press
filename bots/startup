@@ -17,12 +17,11 @@ BLOCK_TOP_RIGHT = "enderstorage:ender_chest"
 BLOCK_BOTTOM_LEFT = "minecraft:gold_block"
 BLOCK_BOTTOM_RIGHT = "minecraft:diamond_block"
 
-local idx, idy = id:match("(%a)(%d+)")
-if not idx or not idy then
+if not ID_X or not ID_Y then
     print("[Error] Invalid ID format. Please re-setup the robot.")
 end
 
-if not (idx:match("^[A-P]$") and idy:match("^[1-9]$") or idy:match("^1[0-6]$")) then
+if not (ID_X:match("^[A-P]$") and ID_Y:match("^[1-9]$") or ID_Y:match("^1[0-6]$")) then
     print("[Error] Invalid ID format. Please re-setup the robot.")
 end
 
