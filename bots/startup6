@@ -413,14 +413,14 @@ while true do
         else
             print("[Info] Picking up items...")
             local result = action_pick(slot)
-            rednet.send(id, "done " .. result, PROTOCOL)
+            rednet.send(id, "done " .. tostring(result), PROTOCOL)
         end
     elseif msg == "empty" then
         local result = action_empty()
-        rednet.send(id, "done " .. result, PROTOCOL)
+        rednet.send(id, "done " .. tostring(result), PROTOCOL)
     elseif msg == "clear" then
         local result = action_clear()
-        rednet.send(id, "done " .. result, PROTOCOL)
+        rednet.send(id, "done " .. tostring(result), PROTOCOL)
     elseif msg:sub(1, 5) == "build" then
         msg = msg:sub(7)
         local grid = {}
@@ -443,7 +443,7 @@ while true do
 
         print("[Info] Grid received!")
         local result = action_build(grid)
-        rednet.send(id, "done " .. result, PROTOCOL)
+        rednet.send(id, "done " .. tostring(result), PROTOCOL)
     elseif msg:sub(1, 6) == "update" then
         local pastebin_id = msg:sub(8)
         print("[Info] Updating code from url " .. pastebin_id .. "...")
