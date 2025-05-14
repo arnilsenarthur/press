@@ -141,9 +141,22 @@ function refresh_screen()
 
             -- print all numbers from 1 to 16
             term.setCursorPos(pos_x + 14, pos_y + 2)
-            for i = 1, GRID_SIZE do
-                monitor.write(" " .. i)
-                table.insert(screen.widgets, {x = pos_x + 14 + i * 2, y = pos_y + 2, width = 1, height = 1, id = "pick_" .. i})
+            local pick_x = pos_x + 14
+            for i = 1, 16 do
+                monitor.write(i)
+
+                local width = 1
+                if i > 9 then
+                    width = 2
+                end
+
+                table.insert(screen.widgets, {x = pick_x, y = pos_y + 2, width = width, height = 1, id = "pick_" .. i})
+                
+                if i > 8 then
+                    pick_x = pick_x + 2
+                else
+                    pick_x = pick_x + 1
+                end
             end
         end  
     end
