@@ -31,6 +31,10 @@ if arg[1] == "run" then
     arg = {unpack(arg, 2)}
 end
 
+if not arg[1] then
+    print("[Error] No update URL provided.")
+    return
+end
 
 if fs.exists("update.lua") then
     fs.delete("update.lua")
@@ -61,4 +65,3 @@ for i = 2, #arg do
     end
     i = i + 1
 end
-
