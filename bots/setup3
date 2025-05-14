@@ -37,10 +37,11 @@ shell.run("wget", arg[1], "update.lua")
 for i = 2, #arg do
     local filename = arg[i]
     local url = arg[i + 1]
+    
     if not filename or not url then
-        print("[Error] Missing filename or URL for update.")
-        return
+        break
     end
+
     if fs.exists(filename) then
         fs.delete(filename)
     end
