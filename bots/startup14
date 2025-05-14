@@ -456,7 +456,7 @@ function action_pick(slot)
     return true
 end
 
-if settings.get("pos_update_id") then
+if settings.get("pos_update_id") ~= nil then
     local id = tonumber(settings.get("pos_update_id"))
     settings.unset("pos_update_id")
     settings.save()
