@@ -4,7 +4,6 @@ PROTOCOL = "press"
 ID_X = settings.get("robot_x")
 ID_Y = settings.get("robot_y")
 
-SERVER_ID = -1
 GRID_SIZE = 8
 
 BLOCK_OFF = "minecraft:stone"
@@ -184,7 +183,19 @@ function dig_and_refuel()
     return true
 end
 
--- Actions
+function place_and_refuel(index)
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to place.")
+        return false
+    end
+
+    turtle.select(index)
+    turtle.placeUp()
+
+    return true
+end
+
+-- Action: Clear
 function action_clear()
     if not refuel_safe() then
         print("[Error] Not enough fuel to clear.")
@@ -196,10 +207,13 @@ function action_clear()
         return false
     end  
 
+    print("[Info] Task: Clear")
     running = true
 
     function task_clear()
         print("[Info] Starting clearing...")
+
+        oriented = false
 
         for i=1,GRID_SIZE do
             for j=1,GRID_SIZE - 1 do
@@ -236,17 +250,199 @@ function action_clear()
         end
 
         print("[Info] Clearing done.")
+        running = false
+        local has, data = turtle.inspectDown()
+        oriented = has and data.name == BLOCK_TOP_RIGHT
     end
 
     parallel.waitForAll(task_clear, check_cancel)
-    running = false
+    print("[Info] Task finished.")
+end
+
+-- Action: Build
+function action_build(data)
+    if data == nil then
+        print("[Error] No data received!")
+        return false
+    end
+
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to build.")
+        return false
+    end
+
+    if not reorient() then
+        print("[Error] Reorientation failed.")
+        return false
+    end
+
+    running = true
+    print("[Info] Task: Build")
+
+    function task_build()
+        print("[Info] Starting building...")
+
+        oriented = false
+
+        for i=1,GRID_SIZE do
+            for j=1,GRID_SIZE do
+                local block = data[j][GRID_SIZE - i + 1]
+
+                if i % 2 == 0 then
+                    block = data[GRID_SIZE - j + 1][GRID_SIZE - i + 1]
+                end
+
+                place_and_refuel(block + 1)
+                
+                if j ~= GRID_SIZE then
+                    turtle.forward()
+                else
+                    if i == GRID_SIZE then
+                        turtle.turnRight()
+                        turtle.forward()
+                        place_and_refuel(block + 1)
+                        for k=1,GRID_SIZE - 2 do
+                            turtle.forward()
+                        end
+                        turtle.turnRight()
+                    elseif i % 2 == 0 then
+                        turtle.turnLeft()
+                        turtle.forward()
+                        turtle.turnLeft()
+                    else
+                        turtle.turnRight()
+                        turtle.forward()
+                        turtle.turnRight()
+                    end
+                end
+
+                if not running then
+                    return
+                end
+            end
+        end
+
+        print("[Info] Building done.")
+        running = false
+        local has, data = turtle.inspectDown()
+        oriented = has and data.name == BLOCK_TOP_RIGHT
+    end
+
+
+    parallel.waitForAll(task_build, check_cancel)
+    print("[Info] Task finished.")
+end
+
+-- Action: Empty
+function action_empty()
+    running = true
+    print("[Info] Task: Empty")
+
+    function task_empty()
+        print("[Info] Starting emptying...")
+
+        local keep = true
+        while keep do
+            keep = false
+            for i=1,16 do
+                local count = turtle.getItemCount(i)
+                if count > 0 then
+                    keep = true
+                    turtle.select(i)
+                    turtle.dropDown(count)
+                end
+
+                if not running then
+                    return
+                end
+            end
+            sleep(0.1)
+
+            if not running then
+                return
+            end
+        end
+
+        print("[Info] Emptying done.")
+        running = false
+    end
+
+    parallel.waitForAll(task_empty, check_cancel)
+    print("[Info] Task finished.")
+end
+
+function action_pick(slot)
+    running = true
+    print("[Info] Task: Pick")
+
+    function task_pick()
+        print("[Info] Starting picking...")
+
+        local count = turtle.getItemCount(slot)
+        while count < 64 do
+            turtle.suckDown(64 - count)
+            count = turtle.getItemCount(slot)
+            sleep(0.1)
+
+            if not running then
+                return
+            end
+        end
+
+        print("[Info] Picking done.")
+        running = false
+    end
+
+    parallel.waitForAll(task_pick, check_cancel)
+    print("[Info] Task finished.")
 end
 
 while true do
     print("[Info] Waiting for commands...")
     local id, msg, proto = rednet.receive(PROTOCOL)
-    if msg == "clear" then
-        action_clear()
-    elseif msg == "build" then
+    if msg == "handshake" then
+        print("[Info] Control " .. id .. " handshake!")
+        rednet.send(id, "ack", PROTOCOL)
+    elseif msg:sub(1, 4) == "pick" then
+        local slot = tonumber(msg:sub(5))
+        if not slot or slot < 1 or slot > 16 then
+            print("[Error] Invalid pick slot: " .. msg)
+        else
+            print("[Info] Picking up items...")
+            local result = action_pick(slot)
+            rednet.send(id, "done " .. result, PROTOCOL)
+        end
+    elseif msg == "empty" then
+        local result = action_empty()
+        rednet.send(id, "done " .. result, PROTOCOL)
+    elseif msg == "clear" then
+        local result = action_clear()
+        rednet.send(id, "done " .. result, PROTOCOL)
+    elseif msg:sub(1, 5) == "build" then
+        msg = msg:sub(7)
+        local grid = {}
+        for line in msg:gmatch("[^\r\n]+") do
+            local row = {}
+            for number in line:gmatch("%d+") do
+                table.insert(row, tonumber(number))
+            end
+            if #row ~= GRID_SIZE then
+                print("[Error] Line " .. (#grid + 1) .. " has a wrong size!")
+                return
+            end
+            table.insert(grid, row)
+        end
+
+        if #grid ~= GRID_SIZE then
+            print("[Error] Grid has a wrong size!")
+            return
+        end
+
+        print("[Info] Grid received!")
+        local result = action_build(grid)
+        rednet.send(id, "done " .. result, PROTOCOL)
+    else
+        print("[Error] Unknown command: " .. msg)
     end
+
 end
