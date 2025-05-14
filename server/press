@@ -21,7 +21,7 @@ function init_bots()
     for y = 0, GRID_HEIGHT - 1 do
         for x = 0, GRID_WIDTH - 1 do
             -- find by id robot<letter> <number>
-            local name = string.format("robot%s%d", string.char(97 + x), y + 1)
+            local name = string.format("robot%s%d", string.char(65 + x), y + 1)
             local id = rednet.lookup(PROTOCOL, name)
             if id then
                 count = count + 1
@@ -53,8 +53,8 @@ function init_bots()
         print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
 
         local start = os.clock()
-        while os.clock() - start < TIMEOUT and ready < count do
-            local id, msg, proto = rednet.receive(PROTOCOL, TIMEOUT - (os.clock() - start))
+        while os.clock() - start < HANDSHAKE_TIMEOUT and ready < count do
+            local id, msg, proto = rednet.receive(PROTOCOL, HANDSHAKE_TIMEOUT - (os.clock() - start))
             if id and msg == "ack" then
                 bots[id].ack = true
                 ready = ready + 1
