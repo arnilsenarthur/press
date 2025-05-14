@@ -31,7 +31,7 @@ if fs.exists("update.lua") then
     fs.delete("update.lua")
 end
 
-print("[Setup] Downloading code from " .. arg[13])
+print("[Setup] Downloading code from " .. arg[3])
 shell.run("wget", arg[3], "update.lua")
 
 for i = 4, #arg do
