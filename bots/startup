@@ -1,0 +1,252 @@
+local args = {...}
+
+PROTOCOL = "press"
+ID_X = settings.get("robot_x")
+ID_Y = settings.get("robot_y")
+
+SERVER_ID = -1
+GRID_SIZE = 8
+
+BLOCK_OFF = "minecraft:stone"
+BLOCK_TOP = "minecraft:quartz_block"
+BLOCK_BOTTOM = "minecraft:polished_andesite"
+BLOCK_LEFT = "minecraft:polished_diorite"
+BLOCK_RIGHT = "minecraft:polished_granite"
+ 
+BLOCK_TOP_LEFT = "minecraft:iron_block"
+BLOCK_TOP_RIGHT = "enderstorage:ender_chest"
+BLOCK_BOTTOM_LEFT = "minecraft:gold_block"
+BLOCK_BOTTOM_RIGHT = "minecraft:diamond_block"
+
+local idx, idy = id:match("(%a)(%d+)")
+if not idx or not idy then
+    print("[Error] Invalid ID format. Please re-setup the robot.")
+end
+
+if not (idx:match("^[A-P]$") and idy:match("^[1-9]$") or idy:match("^1[0-6]$")) then
+    print("[Error] Invalid ID format. Please re-setup the robot.")
+end
+
+local modem = peripheral.find("modem", rednet.open)
+rednet.host(PROTOCOL, "robot" .. ID_X .. " " .. ID_Y)
+print("[Startup] Robot ID: " .. ID_X .. ID_Y)
+
+-- Local values
+local running = false
+local reoriented = false
+
+-- Basic Functions
+function check_cancel()
+    while running do
+        local id, msg, proto = rednet.receive(PROTOCOL)
+        if msg == "cancel" then
+            print("[Info] Task cancelled as requested.")
+            running = false
+            break
+        end
+        sleep(0.01)
+    end
+end
+
+function refuel_safe()
+    if turtle.getFuelLevel() < turtle.getFuelLimit() * 0.2 then
+        local count = turtle.getItemCount(16)
+        if count > 0 then
+            turtle.select(16)
+            turtle.refuel(count)
+            return true
+        end
+        
+        return false
+    end
+
+    return true
+end
+
+function reorient()
+    if reoriented then
+        return true
+    end
+
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to reorient.")
+        return false
+    end
+    
+    reoriented = false
+    local has, data = nil
+ 
+    local function phase_0()
+        while true do
+            has, data = turtle.inspectDown()
+            if data.name ~= BLOCK_OFF then
+                break
+            else
+                turtle.forward()
+            end
+        end
+    end
+ 
+    local function find_block(block)
+        while true do
+            turtle.turnLeft()
+            local fw = turtle.forward()
+            has, data = turtle.inspectDown()
+            if data.name == block then
+                break
+            elseif fw then
+                turtle.back()
+            end
+        end
+    end
+            
+    local function phase_1(block)
+        find_block(block)        
+        while true do
+            turtle.forward()
+            has, data = turtle.inspectDown()
+            if data.name ~= block then
+                break
+            end
+        end
+    end    
+ 
+    local function phase_3(block)
+        if block == BLOCK_BOTTOM_RIGHT then
+            find_block(BLOCK_BOTTOM)
+            turtle.back()
+            turtle.turnRight()
+            for i=1,7 do
+                turtle.forward()
+            end
+            turtle.turnLeft()
+            turtle.turnLeft()
+        elseif block == BLOCK_BOTTOM_LEFT then
+            find_block(BLOCK_BOTTOM)
+            turtle.back()
+            turtle.turnLeft()
+            for i=1,7 do
+                turtle.forward()
+            end
+            turtle.turnRight()
+            for i=1,7 do
+                turtle.forward()
+            end
+            turtle.turnRight()
+        elseif block == BLOCK_TOP_LEFT then
+            find_block(BLOCK_TOP)
+            for i=1,6 do
+                turtle.forward()
+            end
+            turtle.turnRight()
+        elseif block == BLOCK_TOP_RIGHT then
+            find_block(BLOCK_TOP)
+            turtle.back()
+            turtle.turnLeft()
+        end
+    end                                    
+                                                                                                            
+    while true do
+        has, data = turtle.inspectDown()
+        if has then
+            break  
+        end
+    turtle.down()
+    end
+    
+    if data.name == BLOCK_OFF then
+        phase_0()
+    end
+    
+    if data.name == BLOCK_TOP or
+        data.name == BLOCK_BOTTOM or
+        data.name == BLOCK_RIGHT or
+        data.name == BLOCK_LEFT then
+        phase_1(data.name)
+    end
+    
+    has, data = turtle.inspectDown()
+    phase_3(data.name)    
+    
+    has, data = turtle.inspectDown()
+    oriented = has and data.name == BLOCK_TOP_RIGHT
+    return oriented
+end
+
+function dig_and_refuel()
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to dig.")
+        return false
+    end
+
+    turtle.digUp()
+
+    return true
+end
+
+-- Actions
+function action_clear()
+    if not refuel_safe() then
+        print("[Error] Not enough fuel to clear.")
+        return false
+    end
+
+    if not reorient() then
+        print("[Error] Reorientation failed.")
+        return false
+    end  
+
+    running = true
+
+    function task_clear()
+        print("[Info] Starting clearing...")
+
+        for i=1,GRID_SIZE do
+            for j=1,GRID_SIZE - 1 do
+                dig_and_refuel()
+                turtle.forward()
+                
+                if not running then
+                    return
+                end
+            end
+            
+            if i == GRID_SIZE then
+                turtle.turnRight()
+                turtle.digUp()
+                for j=1,GRID_SIZE - 1 do
+                    turtle.forward()
+
+                    if not running then
+                        return
+                    end
+                end
+                turtle.turnRight()
+            elseif i % 2 == 0 then
+                dig_and_refuel()
+                turtle.turnLeft()
+                turtle.forward()
+                turtle.turnLeft()
+            else
+                dig_and_refuel()
+                turtle.turnRight()
+                turtle.forward()
+                turtle.turnRight()
+            end
+        end
+
+        print("[Info] Clearing done.")
+    end
+
+    parallel.waitForAll(task_clear, check_cancel)
+    running = false
+end
+
+while true do
+    print("[Info] Waiting for commands...")
+    local id, msg, proto = rednet.receive(PROTOCOL)
+    if msg == "clear" then
+        action_clear()
+    elseif msg == "build" then
+    end
+end
