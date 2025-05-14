@@ -220,7 +220,7 @@ function action_clear()
                 turtle.forward()
                 
                 if not running then
-                    return
+                    return false
                 end
             end
             
@@ -231,7 +231,7 @@ function action_clear()
                     turtle.forward()
 
                     if not running then
-                        return
+                        return false
                     end
                 end
                 turtle.turnRight()
@@ -317,7 +317,7 @@ function action_build(data)
                 end
 
                 if not running then
-                    return
+                    return false
                 end
             end
         end
@@ -354,13 +354,13 @@ function action_empty()
                 end
 
                 if not running then
-                    return
+                    return false
                 end
             end
             sleep(0.1)
 
             if not running then
-                return
+                return false
             end
         end
 
@@ -387,7 +387,7 @@ function action_pick(slot)
             sleep(0.1)
 
             if not running then
-                return
+                return false
             end
         end
 
