@@ -128,8 +128,8 @@ function wait_for_done(timeout)
     end
 end
 
-function get_grid()
-    local response = http.get(URL)
+function get_grid(url)
+    local response = http.get(url)
     if not response then
         print("[Error] Invalid URL")
     end
@@ -173,13 +173,20 @@ if args[1] == "clear" then
     end
     
     wait_for_done(240)
-elseif args[1] == "build" then
+elseif args[1]:sub(1, 5) == "build" then
+    local url = args[2]
+
+    if not url then
+        print("[Error] No URL provided!")
+        return
+    end
+
     if not reload_turtles() then
         print("[Error] Initlization shutdown!")
         return
     end
     
-    local grid = get_grid()
+    local grid = get_grid(url)
 
     print("[Info] Sending data to turtles...")
     for id, bot in pairs(turtles) do
