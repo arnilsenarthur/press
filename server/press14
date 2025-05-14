@@ -230,9 +230,8 @@ elseif args[1] == "update" then
     for id, bot in pairs(turtles) do
         ready = ready + 1
         term.setCursorPos(x, y)
+        rednet.send(id, "update " .. url, PROTOCOL)
         print("[Info] Number of ready turtles: " .. ready .. "/" .. count)
-        rednet.send(id, "update " .. pastebin_id, PROTOCOL)
-        sleep(1)
     end
 
     print("[Info] Update sent to turtles!")
