@@ -1,43 +1,55 @@
 local args = {...}
 
-GRID_WIDTH = 1
-GRID_HEIGHT = 1
-
-GRID_SIZE = 8
+-- Core Settings
 PROTOCOL = "press"
+
+-- Grid Settings
+GRID_SIZE = 8
+GRID_WIDTH = 16
+GRID_HEIGHT = 16
+
+-- Timeout Settings
 HANDSHAKE_TIMEOUT = 2
---PREPARE_TIMEOUT = 25
+PREPARE_TIMEOUT = 25
 
 local modem = peripheral.find("modem", rednet.open)
-local bots = {}
-local bots_ids = {}
+local turtles = {}
+local turtle_count = 0
 
-function init_bots()
-    print("[Info] Finding all turtles...")
-    local valid = true
+function reload_turtles()
     local count = 0
-    local ready = 0
-
+    local all = true
     for y = 0, GRID_HEIGHT - 1 do
         for x = 0, GRID_WIDTH - 1 do
-            -- find by id robot<letter> <number>
-            local name = string.format("robot%s%d", string.char(65 + x), y + 1)
+            local name = string.format("robot%d %d", x, y)
             local id = rednet.lookup(PROTOCOL, name)
-            if id then
-                count = count + 1
-                bots[id] = {name = name, ack = false, ready = false, x = x, y = y}  
+            if table.contains(turtles, id) then
+                bots[id].found = id ~= nil
+                bots[id].ack = bots[id].ack and id ~= nil
+                bots[id].selected = false
+                bots[id].ready = false
 
-                bots_ids[name] = id
+                if bots[id].found then
+                    count = count + 1
+                else
+                    print("[Error] Bot " .. name .. " not found!")
+                    all = false
+                end
             else
-                print("[Error] Bot " .. name .. " not found!")
-                valid = false
+                if id then
+                    bots[id] = {name = name, ack = false, ready = false, x = x, y = y, found = id ~= nil, selected = false}
+                    count = count + 1
+                else
+                    print("[Error] Bot " .. name .. " not found!")
+                    all = false
+                end
             end
         end
     end
 
     print("[Info] Found " .. count .. " turtles.")
     print("[Info] Waiting for handshakes...")
-
+    
     function send()
         for id, bot in pairs(bots) do
             rednet.send(id, "handshake", PROTOCOL)
@@ -53,8 +65,8 @@ function init_bots()
         print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
 
         local start = os.clock()
-        while os.clock() - start < HANDSHAKE_TIMEOUT and ready < count do
-            local id, msg, proto = rednet.receive(PROTOCOL, HANDSHAKE_TIMEOUT - (os.clock() - start))
+        while os.clock() - start < TIMEOUT and ready < count do
+            local id, msg, proto = rednet.receive(PROTOCOL, TIMEOUT - (os.clock() - start))
             if id and msg == "ack" then
                 bots[id].ack = true
                 ready = ready + 1
@@ -70,11 +82,11 @@ function init_bots()
     for id, bot in pairs(bots) do
         if not bot.ack then
             print("[Error] Bot " .. bot.name .. " did not handshake!") 
-            valid = false
+            all = false
         end
     end
-    
-    return valid
+
+    return all
 end
 
-init_bots()
+reload_turtles()
