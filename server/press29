@@ -55,6 +55,12 @@ function refresh_screen()
                 monitor.setCursorPos(pos_x + 3 + x * 2, pos_y + y * 2 + 2)
                 turtle = get_turtle(x, y)
                 if turtle then
+                    if turtle.selected then
+                        monitor.setBackgroundColor(colors.white)
+                    else
+                        monitor.setBackgroundColor(colors.black)
+                    end
+
                     if turtle.ack then
                         monitor.setTextColor(colors.green)
                     else
@@ -62,6 +68,7 @@ function refresh_screen()
                     end
                     monitor.write("O")
                 else
+                    monitor.setBackgroundColor(colors.black)
                     monitor.setTextColor(colors.white)
                     monitor.write("?")
                 end            
@@ -224,4 +231,14 @@ function get_grid(url)
 end
 
 reload_turtles()
+
+
+-- Handle clicks on the monitor
+while true do
+    local event, side, x, y = os.pullEvent("monitor_touch")
+    if event == "monitor_touch" then
+        print("[Info] Monitor touched at " .. x .. ", " .. y)
+    end
+end
+
 return
