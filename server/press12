@@ -258,10 +258,6 @@ elseif args[1] == "empty" then
     end
     wait_for_done(240)
 elseif args[1] == "cancel" then
-    if not reload_turtles() then
-        print("[Error] Initlization shutdown!")
-        return
-    end
     print("[Info] Cancelling...")
     for y = 0, GRID_HEIGHT - 1 do
         for x = 0, GRID_WIDTH - 1 do
