@@ -108,8 +108,12 @@ function refresh_screen()
             monitor.setBackgroundColor(colors.orange)
             monitor.setTextColor(colors.black)
             monitor.setCursorPos(pos_x, pos_y)
-            monitor.write("Refresh")
-            table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 7, height = 1, id = "refresh"})
+            monitor.write("@")
+            table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 1, height = 1, id = "refresh"})
+
+            monitor.setCursorPos(pos_x + 2, pos_y )
+            monitor.write("Empty")
+            table.insert(screen.widgets, {x = pos_x + 2, y = pos_y, width = 5, height = 1, id = "empty"})
             
             monitor.setBackgroundColor(colors.yellow)
             monitor.setCursorPos(pos_x + 8, pos_y)
@@ -128,24 +132,31 @@ function refresh_screen()
             monitor.write("Clear")
             table.insert(screen.widgets, {x = pos_x + 28, y = pos_y, width = 5, height = 1, id = "clear"})
 
-            -- new line
-            monitor.setCursorPos(pos_x, pos_y + 2)
-            monitor.write("Empty")
-            table.insert(screen.widgets, {x = pos_x, y = pos_y + 2, width = 5, height = 1, id = "empty"})
-
+            term.setCursorPos(pos_x, pos_y + 2)
             monitor.setBackgroundColor(colors.black)
             monitor.setTextColor(colors.white)
-            monitor.write(" Pick: ")
+            monitor.write("Pick: ")
 
             monitor.setBackgroundColor(colors.yellow)
             monitor.setTextColor(colors.black)
 
             -- print all numbers from 1 to 16
-            term.setCursorPos(pos_x + 14, pos_y + 2)
+            local pick_pos = pos_x + 6
             
             for i = 1, 16 do
-                monitor.write(hex[i])
-                table.insert(screen.widgets, {x = pos_x + 14 + i * 2, y = pos_y + 2, width = 1, height = 1, id = "pick_" .. i})
+                monitor.write(i)
+                
+                if i > 9 then
+                    table.insert(screen.widgets, {x = pick_pos, y = pos_y + 2, width = 21, height = 1, id = "pick_" .. i})
+                else
+                    table.insert(screen.widgets, {x = pick_pos, y = pos_y + 2, width = 1, height = 1, id = "pick_" .. i})
+                end
+
+                if i > 8 then
+                    pick_pos = pick_pos + 2
+                else
+                    pick_pos = pick_pos + 1
+                end
             end
         end  
     end
