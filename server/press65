@@ -104,6 +104,18 @@ function refresh_screen()
             monitor.setBackgroundColor(colors.black)
             monitor.setCursorPos(pos_x, pos_y)
             monitor.write(frozen.message .. " " .. string.format("%.2f%%", frozen.progress * 100))
+
+            --progress bar 2 lines below
+            local progress_width = 34
+            local progress = math.floor(frozen.progress * progress_width)
+            monitor.setCursorPos(pos_x, pos_y + 2)
+            
+            monitor.setTextColor(colors.red)
+            monitor.write(string.rep("-", progress_width))
+
+            montior.setTextColor(colors.green)
+            monitor.write(string.rep("-", progress))
+            
         else
             monitor.setBackgroundColor(colors.orange)
             monitor.setTextColor(colors.black)
@@ -175,6 +187,7 @@ end
 
 -- Methods
 function reload_turtles()
+    speaker.playSound("block.anvil.land")
     print("[Info] Reloading turtles...")
     frozen.is_frozen = true
     frozen.progress = 0
@@ -271,7 +284,7 @@ function reload_turtles()
 end
 
 function do_action(command_provider, can_busy_do)
-    speaker.playSound("block.anvil.hit")
+    speaker.playSound("block.anvil.land")
     frozen.is_frozen = true
     frozen.progress = 0
     frozen.message = "Sending commands..."
