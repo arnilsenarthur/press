@@ -259,9 +259,9 @@ end
 reload_turtles()
 
 -- Handle clicks on the monitor
-while true do
-    parallel.waitForAny(
-        function()
+parallel.waitForAll(
+    function()
+        while true do
             local event, side, x, y = os.pullEvent("monitor_touch")
             if event == "monitor_touch" then
                 for _, widget in ipairs(screen.widgets) do
@@ -340,8 +340,10 @@ while true do
                     end
                 end
             end
-        end,
-        function()
+        end
+    end,
+    function()
+        while true do
             local id, msg, proto = rednet.receive(PROTOCOL)
             if msg == "done" then
                 print("[Info] Turtle " .. id .. " finished!")
@@ -360,8 +362,8 @@ while true do
                 end
                 refresh_screen()
             end
-        end 
-    )
-end
+        end
+    end 
+)
 
 return
