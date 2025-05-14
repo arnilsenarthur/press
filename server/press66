@@ -113,9 +113,9 @@ function refresh_screen()
             monitor.setTextColor(colors.red)
             monitor.write(string.rep("-", progress_width))
 
-            montior.setTextColor(colors.green)
+            monitor.setTextColor(colors.green)
             monitor.write(string.rep("-", progress))
-            
+
         else
             monitor.setBackgroundColor(colors.orange)
             monitor.setTextColor(colors.black)
