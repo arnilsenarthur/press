@@ -39,7 +39,7 @@ function refresh_screen()
 
     function draw_grid(pos_x, pos_y)
         -- Clear widgets
-        table.clear(screen.widgets)
+        screen.widgets = {}
 
         monitor.setBackgroundColor(colors.black)
         monitor.setTextColor(colors.lightGray)
