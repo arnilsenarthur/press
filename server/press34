@@ -302,7 +302,7 @@ while true do
                         end
                     end
                     refresh_screen()
-                else if widget.id == "all" then
+                elseif widget.id == "all" then
                     print("[Info] All turtles clicked!")
                     -- use the first turtle as a reference
                     local turtle = turtles[next(turtles)]
