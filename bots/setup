@@ -1,0 +1,57 @@
+term.clear()
+term.setCursorPos(1, 1)
+
+print("[Setup] Type the ID of this turtle (like A9):")
+
+local input = read()
+local idx, idy = input:match("(%a)(%d+)")
+
+if not idx or not idy then
+    print("[Error] Invalid input. Please enter a letter followed by a number (like A9).")
+    return
+end
+
+if not (idx:match("^[A-P]$") and idy:match("^[1-9]$") or idy:match("^1[0-6]$")) then
+    print("[Error] Invalid input. Please enter a letter from A to P followed by a number from 1 to 16.")
+    return
+end
+
+settings.set("robot_x", idx)
+settings.set("robot_y", idy)
+settings.save()
+
+if not arg[1] then
+    print("[Error] No update URL provided.")
+    return
+end
+
+if fs.exists("update.lua") then
+    fs.delete("update.lua")
+end
+
+print("[Setup] Downloading code from " .. arg[1])
+shell.run("wget", arg[1], "update.lua")
+
+for i = 2, #arg do
+    local filename = arg[i]
+    local url = arg[i + 1]
+    if not filename or not url then
+        print("[Error] Missing filename or URL for update.")
+        return
+    end
+    if fs.exists(filename) then
+        fs.delete(filename)
+    end
+
+    print("[Setup] Downloading code from " .. url)
+    shell.run("wget", URL_BASE .. url, filename)
+    i = i + 1
+    if not fs.exists(filename) then
+        print("[Error] Failed to download " .. filename)
+        return
+    else
+        print("[Setup] Download complete to " .. filename)
+    end
+    i = i + 1
+end
+
