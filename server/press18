@@ -16,6 +16,7 @@ local modem = peripheral.find("modem", rednet.open)
 local turtles = {}
 
 function reload_turtles()
+    print("[Info] Reloading turtles...")
     local count = 0
     local all = true
     for y = 0, GRID_HEIGHT - 1 do
@@ -61,7 +62,7 @@ function reload_turtles()
     function receive()
         local x, y = term.getCursorPos()
         term.setCursorPos(x, y)
-        print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
+        term.write("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
 
         local start = os.clock()
         while os.clock() - start < HANDSHAKE_TIMEOUT and ready < count do
@@ -70,11 +71,13 @@ function reload_turtles()
                 turtles[id].ack = true
                 ready = ready + 1
                 start = os.clock()
-                term.setCursorPos(x, y)
+                term.write(x, y)
                 print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
             end
         end
-    end
+
+        term.write("\n")
+    end 
 
     parallel.waitForAll(send, receive)
     
@@ -101,18 +104,21 @@ function wait_for_done(timeout)
 
     local x, y = term.getCursorPos()
     term.setCursorPos(x, y)
-    print("[Info] Number of done turtles: " .. ready .. "/" .. count)
+    term.write("[Info] Number of done turtles: " .. ready .. "/" .. count)
 
     local start = os.clock()
     while os.clock() - start < timeout and ready < count do
         local id, msg, proto = rednet.receive(PROTOCOL, timeout - (os.clock() - start))
         if id and msg:sub(1, 4) == "done" then
             ready = ready + 1
-            term.setCursorPos(x, y)
+
             turtles[id].done = true
-            print("[Info] Number of done turtles: " .. ready .. "/" .. count)
+            term.setCursorPos(x, y)  
+            term.write("[Info] Number of done turtles: " .. ready .. "/" .. count)
         end
     end
+
+    term.write("\n")
 
     for id, bot in pairs(turtles) do
         if not bot.done then
@@ -159,6 +165,7 @@ function get_grid(url)
 end
 
 term.clear()
+term.setCursorPos(1, 1)
 
 if args[1] == "clear" then
     if not reload_turtles() then
