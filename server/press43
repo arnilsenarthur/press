@@ -16,6 +16,7 @@ local modem = peripheral.find("modem", rednet.open)
 local turtles = {}
 local screen = {widgets = {}}
 local speaker = peripheral.find("speaker")
+local frozen = { is_frozen = false, progress = 0, message = ""}
 
 -- wrap a monitor to display the turtle states
 local monitor = peripheral.find("monitor")
@@ -26,6 +27,7 @@ if monitor then
     monitor.clear()
 end
 
+-- Utils
 function get_turtle(x, y)
     for id, bot in pairs(turtles) do
         if bot.x == x and bot.y == y then
@@ -35,6 +37,7 @@ function get_turtle(x, y)
     return nil
 end
 
+-- Display
 function refresh_screen()
     function draw_grid(pos_x, pos_y)
         monitor.setBackgroundColor(colors.black)
@@ -92,15 +95,22 @@ function refresh_screen()
     end
 
     function draw_header(pos_x, pos_y)
-        monitor.setBackgroundColor(colors.yellow)
-        monitor.setTextColor(colors.black)
-        monitor.setCursorPos(pos_x, pos_y)
-        monitor.write("Refresh")
-        table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 7, height = 1, id = "refresh"})
+        if frozen.is_frozen then
+            monitor.setTextColor(colors.red)
+            monitor.setBackgroundColor(colors.black)
+            monitor.setCursorPos(pos_x, pos_y)
+            monitor.write(frozen.message .. " " .. tostring.format("%.2f%%", frozen.progress * 100))
+        else
+            monitor.setBackgroundColor(colors.yellow)
+            monitor.setTextColor(colors.black)
+            monitor.setCursorPos(pos_x, pos_y)
+            monitor.write("Refresh")
+            table.insert(screen.widgets, {x = pos_x, y = pos_y, width = 7, height = 1, id = "refresh"})
 
-        monitor.setCursorPos(pos_x + 8, pos_y)
-        monitor.write("Update")
-        table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 7, height = 1, id = "update"})
+            monitor.setCursorPos(pos_x + 8, pos_y)
+            monitor.write("Update")
+            table.insert(screen.widgets, {x = pos_x + 8, y = pos_y, width = 7, height = 1, id = "update"})
+        end  
     end
 
     -- Clear widgets
@@ -111,10 +121,16 @@ function refresh_screen()
     draw_grid(4, 4)
 end
 
+-- Methods
 function reload_turtles()
     print("[Info] Reloading turtles...")
+    frozen.is_frozen = true
+    frozen.progress = 0
+    frozen.message = "Reloading turtles..."
+
     local count = 0
     local all = true
+
     for y = 0, GRID_HEIGHT - 1 do
         for x = 0, GRID_WIDTH - 1 do
             local name = "robot" .. string.char(65 + x) .. (y + 1)
@@ -132,7 +148,7 @@ function reload_turtles()
                 end
             else
                 if id then
-                    turtles[id] = {name = name, ack = false, x = x, y = y, found = id ~= nil, busy = false, selected = true}
+                    turtles[id] = {name = name, ack = false, x = x, y = y, found = id ~= nil, busy = false, selected = false}
                     count = count + 1
                 else
                     print("[Error] Bot " .. name .. " not found!")
@@ -140,6 +156,7 @@ function reload_turtles()
                 end
             end
 
+            frozen.progress = math.floor(count / (GRID_WIDTH * GRID_HEIGHT))
             refresh_screen()
         end
     end
@@ -166,6 +183,7 @@ function reload_turtles()
             local id, msg, proto = rednet.receive(PROTOCOL, HANDSHAKE_TIMEOUT - (os.clock() - start))
             if id and msg:sub(1, 3) == "ack" then
                 turtles[id].ack = true
+                turtles[id].selected = true
                 turtles[id].busy = false
                 ready = ready + 1
                 start = os.clock()
@@ -187,79 +205,45 @@ function reload_turtles()
         end
     end
 
+    frozen.is_frozen = false
     refresh_screen()
     return all
 end
 
-function wait_for_done(timeout)
-    -- wait for tutles to show the done message
+function do_action(command_provider, can_busy_do)
+    frozen.is_frozen = true
+    frozen.progress = 0
+    frozen.message = "Commanding turtles..."
+
     local count = 0
-    local ready = 0
-
-    print("[Info] Waiting for turtles to finish...")
-    for id, bot in pairs(turtles) do
-        count = count + 1
-        bot.done = false
-    end
-
-    local x, y = term.getCursorPos()
-    term.setCursorPos(x, y)
-    print("[Info] Number of done turtles: " .. ready .. "/" .. count)
-
-    local start = os.clock()
-    while os.clock() - start < timeout and ready < count do
-        local id, msg, proto = rednet.receive(PROTOCOL, timeout - (os.clock() - start))
-        if id and msg:sub(1, 4) == "done" then
-            ready = ready + 1
-
-            turtles[id].done = true
-            term.setCursorPos(x, y)  
-            print("[Info] Number of done turtles: " .. ready .. "/" .. count)
-        end
-    end
+    local done = 0
 
     for id, bot in pairs(turtles) do
-        if not bot.done then
-            print("[Error] Turtle " .. bot.name .. " did not finish in time!")
-            valid = false
+        if bot.selected then
+            count = count + 1
+        end
+    end
+    
+    for id, bot in pairs(turtles) do
+        if bot.selected then
+            done = done + 1
+            frozen.progress = math.floor(done / count)
+
+            if can_busy_do or not bot.busy then
+                turtles[id].busy = true
+
+                local cmd = command_provider(id, bot)
+                rednet.send(id, cmd, PROTOCOL)
+
+                sleep(0.01)
+                refresh_screen()
+            end
         end
     end
 
-    if ready == count then
-        print("[Info] All turtles finished!")
-    else
-        print("[Error] Not all turtles finished!")
-    end
-end
-
-function get_grid(url)
-    local response = http.get(url)
-    if not response then
-        print("[Error] Invalid URL")
-    end
-    
-    local raw_data = response.readAll()
-    response.close()
-    
-    local grid = {}
-    for line in raw_data:gmatch("[^\r\n]+") do
-        local row = {}
-        for number in line:gmatch("%d+") do
-            table.insert(row, tonumber(number))
-        end
-        if #row ~= GRID_WIDTH * GRID_SIZE then
-            --print("[Error] Line " .. (#grid + 1) .. " has a wrong size!")
-            --return
-        end
-        table.insert(grid, row)
-    end
-    
-    if #grid ~= GRID_HEIGHT * GRID_SIZE then
-        --print("[Error] Invalid row count")
-        --return
-    end
-
-    return grid
+    frozen.is_frozen = false
+    frozen.progress = 0
+    frozen.message = "Done!"
 end
 
 reload_turtles()
@@ -278,13 +262,13 @@ while true do
                     gridY = tonumber(gridY)
                     local turtle = get_turtle(gridX, gridY)
                     if turtle then
-                        turtle.selected = not turtle.selected
+                        turtle.selected = not turtle.selected and turtle.ack
                     end
                     refresh_screen()
                 elseif widget.id:sub(1, 7) == "column_" then
                     local column = tonumber(widget.id:sub(8))
                     local turtle = get_turtle(column, 0)
-                    local new_value = not turtle.selected
+                    local new_value = not turtle.selected and turtle.ack
                     for y = 0, GRID_HEIGHT - 1 do
                         local turtle = get_turtle(column, y)
                         if turtle then
@@ -304,7 +288,7 @@ while true do
                     for x = 0, GRID_WIDTH - 1 do
                         local turtle = get_turtle(x, row)
                         if turtle then
-                            turtle.selected = new_value
+                            turtle.selected = new_value and turtle.ack
                         end
                     end
                     refresh_screen()
@@ -312,7 +296,7 @@ while true do
                     print("[Info] All turtles clicked!")
                     -- use the first turtle as a reference
                     local turtle = get_turtle(0, 0)
-                    local new_value = not turtle.selected
+                    local new_value = not turtle.selected and turtle.ack
 
                     for id, bot in pairs(turtles) do
                         bot.selected = new_value
