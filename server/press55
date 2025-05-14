@@ -133,9 +133,8 @@ function refresh_screen()
     screen.widgets = {}
     monitor.clear()
 
-    local size_x, size_y = monitor.getSize()
-    draw_header(4, size_y - 2)
-    draw_grid(4, 4)
+    draw_header(4, 2)
+    draw_grid(4, 6)
 end
 
 -- Methods
