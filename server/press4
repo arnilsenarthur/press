@@ -24,12 +24,12 @@ function reload_turtles()
             local name = "robot" .. string.char(65 + x) .. (y + 1)
             local id = rednet.lookup(PROTOCOL, name)
             if turtles[id] then
-                bots[id].found = id ~= nil
-                bots[id].ack = bots[id].ack and id ~= nil
-                bots[id].selected = false
-                bots[id].ready = false
+                turtles[id].found = id ~= nil
+                turtles[id].ack = turtles[id].ack and id ~= nil
+                turtles[id].selected = false
+                turtles[id].ready = false
 
-                if bots[id].found then
+                if turtles[id].found then
                     count = count + 1
                 else
                     print("[Error] Bot " .. name .. " not found!")
@@ -37,7 +37,7 @@ function reload_turtles()
                 end
             else
                 if id then
-                    bots[id] = {name = name, ack = false, ready = false, x = x, y = y, found = id ~= nil, selected = false}
+                    turtles[id] = {name = name, ack = false, ready = false, x = x, y = y, found = id ~= nil, selected = false}
                     count = count + 1
                 else
                     print("[Error] Bot " .. name .. " not found!")
@@ -68,7 +68,7 @@ function reload_turtles()
         while os.clock() - start < TIMEOUT and ready < count do
             local id, msg, proto = rednet.receive(PROTOCOL, TIMEOUT - (os.clock() - start))
             if id and msg == "ack" then
-                bots[id].ack = true
+                turtles[id].ack = true
                 ready = ready + 1
                 start = os.clock()
                 term.setCursorPos(x, y)
@@ -79,7 +79,7 @@ function reload_turtles()
 
     parallel.waitForAll(send, receive)
     
-    for id, bot in pairs(bots) do
+    for id, bot in pairs(turtles) do
         if not bot.ack then
             print("[Error] Bot " .. bot.name .. " did not handshake!") 
             all = false
