@@ -15,7 +15,7 @@ PREPARE_TIMEOUT = 25
 local modem = peripheral.find("modem", rednet.open)
 local turtles = {}
 local screen = {widgets = {}}
-
+local speaker = peripheral.find("speaker")
 
 -- wrap a monitor to display the turtle states
 local monitor = peripheral.find("monitor")
@@ -256,6 +256,7 @@ while true do
     if event == "monitor_touch" then
         for _, widget in ipairs(screen.widgets) do
             if x >= widget.x and x <= widget.x + widget.width - 1 and y >= widget.y and y <= widget.y + widget.height - 1 then
+                speaker.playSound("ui.button.click")
                 if widget.id:sub(1, 5) == "grid_" then
                     local gridX, gridY = widget.id:match("grid_(%d+)_(%d+)")
                     gridX = tonumber(gridX)
@@ -295,7 +296,7 @@ while true do
                 elseif widget.id == "all" then
                     print("[Info] All turtles clicked!")
                     -- use the first turtle as a reference
-                    local turtle = tget_turtle(0, 0)
+                    local turtle = get_turtle(0, 0)
                     local new_value = not turtle.selected
 
                     for id, bot in pairs(turtles) do
