@@ -116,6 +116,7 @@ function refresh_screen()
     -- Clear widgets
     screen.widgets = {}
     monitor.clear()
+    monitor.setTextScale(1)
 
     draw_header(4, 2)
     draw_grid(4, 4)
@@ -163,6 +164,9 @@ function reload_turtles()
 
     print("[Info] Found " .. count .. " turtles.")
     print("[Info] Waiting for handshakes...")
+
+    frozen.progress = 0
+    frozen.message = "Waiting for handshakes..."
     
     function send()
         for id, bot in pairs(turtles) do
@@ -189,6 +193,7 @@ function reload_turtles()
                 start = os.clock()
                 term.setCursorPos(x, y)
                 print("[Info] Number of handshaken turtles: " .. ready .. "/" .. count)
+                frozen.progress = ready / count
                 refresh_screen()
             end
         end
@@ -309,30 +314,19 @@ while true do
                 elseif widget.id == "update" then
                     monitor.clear()
                     monitor.setCursorPos(1, 1)
+                    monitor.setTextColor(colors.yellow)
+                    monitor.setBackgroundColor(colors.black)
+                    monitor.setTextScale(2)
                     monitor.write("Insert the URL on the console:")
                     print("Write the URL to download the update file:")
                     local url = read()
                     
-                    local count = 0
-                    local ready = 0
-
-                    for id, bot in pairs(turtles) do
-                        count = count + 1
+                    function get_cmd(id, bot)
+                        return "update " .. url
                     end
-
-                    local x, y = term.getCursorPos()
-                    term.setCursorPos(x, y)
-                    print("[Info] Number of ready turtles: " .. ready .. "/" .. count)
-
-                    for id, bot in pairs(turtles) do
-                        ready = ready + 1
-                        term.setCursorPos(x, y)
-                        rednet.send(id, "update " .. url, PROTOCOL)
-                        print("[Info] Number of ready turtles: " .. ready .. "/" .. count)
-                    end
-
-                    print("[Info] Update sent to turtles!")
-                    print("[Info] Wait for the turtles to finish!")
+                    
+                    do_action(get_cmd, false)
+                    print("[Info] Update command sent to turtles.")
                 end
 
                 break
