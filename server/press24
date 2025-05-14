@@ -58,7 +58,7 @@ function refresh_screen()
         end
     end
 
-    draw_grid(1, 1)
+    draw_grid(4, 4)
 end
 
 function reload_turtles()
