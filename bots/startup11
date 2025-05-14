@@ -41,6 +41,9 @@ function check_cancel()
             print("[Info] Task cancelled as requested.")
             running = false
             break
+        elseif id and msg == "handshake" then
+            print("[Info] Control " .. id .. " handshake!")
+            rednet.send(id, "ack true", PROTOCOL)
         end
         sleep(0.01)
     end
@@ -70,103 +73,155 @@ function reorient()
         print("[Error] Not enough fuel to reorient.")
         return false
     end
+
+    print("[Info] Task: Reorient")
+    running = true
     
     reoriented = false
-    local has, data = nil
- 
-    local function phase_0()
-        while true do
-            has, data = turtle.inspectDown()
-            if data.name ~= BLOCK_OFF then
-                break
-            else
-                turtle.forward()
+    function task_reorient()
+        local has, data = nil
+    
+        local function phase_0()
+            while true do
+                has, data = turtle.inspectDown()
+                if data.name ~= BLOCK_OFF then
+                    break
+                else
+                    turtle.forward()
+                end
+
+                if not running then
+                    return false
+                end
             end
         end
-    end
- 
-    local function find_block(block)
-        while true do
-            turtle.turnLeft()
-            local fw = turtle.forward()
-            has, data = turtle.inspectDown()
-            if data.name == block then
-                break
-            elseif fw then
+    
+        local function find_block(block)
+            while true do
+                turtle.turnLeft()
+                local fw = turtle.forward()
+                has, data = turtle.inspectDown()
+                if data.name == block then
+                    break
+                elseif fw then
+                    turtle.back()
+                end
+
+                if not running then
+                    return false
+                end
+            end
+        end
+                
+        local function phase_1(block)
+            find_block(block)        
+            while true do
+                turtle.forward()
+                has, data = turtle.inspectDown()
+                if data.name ~= block then
+                    break
+                end
+
+                if not running then
+                    return false
+                end
+            end
+        end    
+    
+        local function phase_3(block)
+            if block == BLOCK_BOTTOM_RIGHT then
+                find_block(BLOCK_BOTTOM)
                 turtle.back()
+                turtle.turnRight()
+                for i=1,7 do
+                    turtle.forward()
+                end
+                turtle.turnLeft()
+                turtle.turnLeft()
+            elseif block == BLOCK_BOTTOM_LEFT then
+                find_block(BLOCK_BOTTOM)
+                turtle.back()
+                turtle.turnLeft()
+                for i=1,7 do
+                    turtle.forward()
+
+                    if not running then
+                        return false
+                    end
+                end
+                turtle.turnRight()
+                for i=1,7 do
+                    turtle.forward()
+
+                    if not running then
+                        return false
+                    end
+                end
+                turtle.turnRight()
+            elseif block == BLOCK_TOP_LEFT then
+                find_block(BLOCK_TOP)
+                for i=1,6 do
+                    turtle.forward()
+
+                    if not running then
+                        return false
+                    end
+                end
+                turtle.turnRight()
+            elseif block == BLOCK_TOP_RIGHT then
+                find_block(BLOCK_TOP)
+                turtle.back()
+                turtle.turnLeft()
             end
-        end
-    end
-            
-    local function phase_1(block)
-        find_block(block)        
+        end                                    
+                                                                                                                
         while true do
-            turtle.forward()
             has, data = turtle.inspectDown()
-            if data.name ~= block then
-                break
+            if has then
+                break  
+            end
+            turtle.down()
+
+            if not running then
+                return false
             end
         end
-    end    
- 
-    local function phase_3(block)
-        if block == BLOCK_BOTTOM_RIGHT then
-            find_block(BLOCK_BOTTOM)
-            turtle.back()
-            turtle.turnRight()
-            for i=1,7 do
-                turtle.forward()
-            end
-            turtle.turnLeft()
-            turtle.turnLeft()
-        elseif block == BLOCK_BOTTOM_LEFT then
-            find_block(BLOCK_BOTTOM)
-            turtle.back()
-            turtle.turnLeft()
-            for i=1,7 do
-                turtle.forward()
-            end
-            turtle.turnRight()
-            for i=1,7 do
-                turtle.forward()
-            end
-            turtle.turnRight()
-        elseif block == BLOCK_TOP_LEFT then
-            find_block(BLOCK_TOP)
-            for i=1,6 do
-                turtle.forward()
-            end
-            turtle.turnRight()
-        elseif block == BLOCK_TOP_RIGHT then
-            find_block(BLOCK_TOP)
-            turtle.back()
-            turtle.turnLeft()
+        
+        if data.name == BLOCK_OFF then
+            phase_0()
         end
-    end                                    
-                                                                                                            
-    while true do
+
+        if not running then
+            return false
+        end
+        
+        if data.name == BLOCK_TOP or
+            data.name == BLOCK_BOTTOM or
+            data.name == BLOCK_RIGHT or
+            data.name == BLOCK_LEFT then
+            phase_1(data.name)
+        end
+
+        if not running then
+            return false
+        end
+        
         has, data = turtle.inspectDown()
-        if has then
-            break  
+        phase_3(data.name)   
+        
+        if not running then
+            return false
         end
-    turtle.down()
-    end
     
-    if data.name == BLOCK_OFF then
-        phase_0()
-    end
+        print("[Info] Reorientation done.")
+        running = false
+        
     
-    if data.name == BLOCK_TOP or
-        data.name == BLOCK_BOTTOM or
-        data.name == BLOCK_RIGHT or
-        data.name == BLOCK_LEFT then
-        phase_1(data.name)
-    end
+    parallel.waitForAll(task_reorient, check_cancel)
+    print("[Info] Task finished.")
     
-    has, data = turtle.inspectDown()
-    phase_3(data.name)    
     
-    has, data = turtle.inspectDown()
+    local has, data = turtle.inspectDown()
     oriented = has and data.name == BLOCK_TOP_RIGHT
     return oriented
 end
@@ -407,7 +462,7 @@ while true do
     local id, msg, proto = rednet.receive(PROTOCOL)
     if msg == "handshake" then
         print("[Info] Control " .. id .. " handshake!")
-        rednet.send(id, "ack", PROTOCOL)
+        rednet.send(id, "ack false", PROTOCOL)
     elseif msg:sub(1, 4) == "pick" then
         local slot = tonumber(msg:sub(5))
         if not slot or slot < 1 or slot > 16 then
