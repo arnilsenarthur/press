@@ -366,6 +366,7 @@ parallel.waitForAll(
     function()
         while true do
             local id, msg, proto = rednet.receive(PROTOCOL)
+            print("[Info] Received message from turtle " .. id .. ": " .. msg)
             if msg == "done" then
                 print("[Info] Turtle " .. id .. " finished!")
                 local turtle = turtles[id]
