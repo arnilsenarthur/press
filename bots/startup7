@@ -36,8 +36,8 @@ local reoriented = false
 -- Basic Functions
 function check_cancel()
     while running do
-        local id, msg, proto = rednet.receive(PROTOCOL)
-        if msg == "cancel" then
+        local id, msg, proto = rednet.receive(PROTOCOL, 0.5)
+        if id and msg == "cancel" then
             print("[Info] Task cancelled as requested.")
             running = false
             break
