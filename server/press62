@@ -153,8 +153,10 @@ function refresh_screen()
                     table.insert(screen.widgets, {x = pick_pos, y = pos_y + 2, width = 1, height = 1, id = "pick_" .. i})
                 end
 
-                if i > 8 then
+                if i == 9 then
                     pick_pos = pick_pos + 2
+                elseif i > 9 then
+                    pick_pos = pick_pos + 3
                 else
                     pick_pos = pick_pos + 1
                 end
