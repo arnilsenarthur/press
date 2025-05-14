@@ -440,6 +440,11 @@ while true do
         print("[Info] Grid received!")
         local result = action_build(grid)
         rednet.send(id, "done " .. result, PROTOCOL)
+    elseif msg:sub(1, 6) == "update" then
+        local pastebin_id = msg:sub(8)
+        print("[Info] Updating code from url " .. pastebin_id .. "...")
+        shell.run("update", "startup.lua", pastebin_id)
+        return
     else
         print("[Error] Unknown command: " .. msg)
     end
