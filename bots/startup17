@@ -460,7 +460,7 @@ if settings.get("pos_update_id") ~= nil then
     local id = tonumber(settings.get("pos_update_id"))
     settings.unset("pos_update_id")
     settings.save()
-    rednet.send(id, "done", PROTOCOL)
+    rednet.send(id, "done true", PROTOCOL)
     print("[Info] Sending update callback!")
 end
 
