@@ -40,6 +40,7 @@ function get_grid(url)
     local response = http.get(url)
     if not response then
         print("[Error] Invalid URL")
+        return nil
     end
     
     local raw_data = response.readAll()
