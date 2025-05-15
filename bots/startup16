@@ -470,6 +470,9 @@ while true do
     if msg == "handshake" then
         print("[Info] Control " .. id .. " handshake!")
         rednet.send(id, "ack false", PROTOCOL)
+    else if msg == "cancel" then
+        print("[Info] No task to cancel.")
+        rednet.send(id, "done true", PROTOCOL)
     elseif msg:sub(1, 4) == "pick" then
         local slot = tonumber(msg:sub(5))
         if not slot or slot < 1 or slot > 16 then
