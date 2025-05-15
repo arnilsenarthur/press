@@ -469,7 +469,9 @@ while true do
     local id, msg, proto = rednet.receive(PROTOCOL)
     if msg == "handshake" then
         print("[Info] Control " .. id .. " handshake!")
-        rednet.send(id, "ack false", PROTOCOL)
+        rednet.send(id, "ack true", PROTOCOL)
+        reorient()
+        rednet.send(id, "done true", PROTOCOL)
     elseif msg == "cancel" then
         print("[Info] No task to cancel.")
         rednet.send(id, "done true", PROTOCOL)
