@@ -87,7 +87,11 @@ function reorient()
                 if data.name ~= BLOCK_OFF then
                     break
                 else
-                    turtle.forward()
+                    while true do
+                        if turtle.forward() then
+                            break
+                        end
+                    end
                 end
 
                 if not running then
@@ -116,7 +120,11 @@ function reorient()
         local function phase_1(block)
             find_block(block)        
             while true do
-                turtle.forward()
+                while true do
+                    if turtle.forward() then
+                        break
+                    end
+                end
                 has, data = turtle.inspectDown()
                 if data.name ~= block then
                     break
@@ -131,19 +139,35 @@ function reorient()
         local function phase_3(block)
             if block == BLOCK_BOTTOM_RIGHT then
                 find_block(BLOCK_BOTTOM)
-                turtle.back()
+                while true do
+                    if turtle.back() then
+                        break
+                    end
+                end
                 turtle.turnRight()
                 for i=1,7 do
-                    turtle.forward()
+                    while true do
+                        if turtle.forward() then
+                            break
+                        end
+                    end
                 end
                 turtle.turnLeft()
                 turtle.turnLeft()
             elseif block == BLOCK_BOTTOM_LEFT then
                 find_block(BLOCK_BOTTOM)
-                turtle.back()
+                while true do
+                    if turtle.back() then
+                        break
+                    end
+                end
                 turtle.turnLeft()
                 for i=1,7 do
-                    turtle.forward()
+                    while true do
+                        if turtle.forward() then
+                            break
+                        end
+                    end
 
                     if not running then
                         return false
@@ -151,7 +175,11 @@ function reorient()
                 end
                 turtle.turnRight()
                 for i=1,7 do
-                    turtle.forward()
+                    while true do
+                        if turtle.forward() then
+                            break
+                        end
+                    end
 
                     if not running then
                         return false
@@ -161,7 +189,11 @@ function reorient()
             elseif block == BLOCK_TOP_LEFT then
                 find_block(BLOCK_TOP)
                 for i=1,6 do
-                    turtle.forward()
+                    while true do
+                        if turtle.forward() then
+                            break
+                        end
+                    end
 
                     if not running then
                         return false
@@ -170,7 +202,11 @@ function reorient()
                 turtle.turnRight()
             elseif block == BLOCK_TOP_RIGHT then
                 find_block(BLOCK_TOP)
-                turtle.back()
+                while true do
+                    if turtle.back() then
+                        break
+                    end
+                end
                 turtle.turnLeft()
             end
         end                                    
@@ -267,6 +303,8 @@ function action_clear()
         print("[Info] Starting clearing...")
 
         oriented = false
+
+        turtle.select(1)
 
         for i=1,GRID_SIZE do
             for j=1,GRID_SIZE - 1 do
